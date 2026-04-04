@@ -208,9 +208,9 @@ function DashboardLayoutContent({
                         isActive={active}
                         onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
                         tooltip={item.label}
-                        className="h-9 transition-all font-normal"
+                        className="h-12 md:h-9 transition-all font-normal text-base md:text-sm"
                       >
-                        <item.icon className={`h-4 w-4 ${active ? "text-primary" : ""}`} />
+                        <item.icon className={`h-5 w-5 md:h-4 md:w-4 ${active ? "text-primary" : ""}`} />
                         <span>{item.label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -228,9 +228,9 @@ function DashboardLayoutContent({
                 {!isCollapsed && (
                   <button
                     onClick={() => setShowCreateArea(true)}
-                    className="h-5 w-5 flex items-center justify-center hover:bg-accent rounded transition-colors text-muted-foreground hover:text-foreground"
+                    className="h-10 w-10 md:h-5 md:w-5 flex items-center justify-center hover:bg-accent rounded-lg md:rounded transition-colors text-muted-foreground hover:text-foreground"
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-5 w-5 md:h-3.5 md:w-3.5" />
                   </button>
                 )}
               </div>
@@ -244,9 +244,9 @@ function DashboardLayoutContent({
                           isActive={active}
                           onClick={() => { setLocation(`/area/${area.id}`); if (isMobile) toggleSidebar(); }}
                           tooltip={area.name}
-                          className="h-8 md:h-8 font-normal text-sm"
+                          className="h-11 md:h-8 font-normal text-base md:text-sm"
                         >
-                          <FolderOpen className={`h-3.5 w-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                          <FolderOpen className={`h-5 w-5 md:h-3.5 md:w-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
                           <span className="truncate">{area.name}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -265,9 +265,9 @@ function DashboardLayoutContent({
                 {!isCollapsed && (
                   <button
                     onClick={() => setShowCreateProject(true)}
-                    className="h-5 w-5 flex items-center justify-center hover:bg-accent rounded transition-colors text-muted-foreground hover:text-foreground"
+                    className="h-10 w-10 md:h-5 md:w-5 flex items-center justify-center hover:bg-accent rounded-lg md:rounded transition-colors text-muted-foreground hover:text-foreground"
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-5 w-5 md:h-3.5 md:w-3.5" />
                   </button>
                 )}
               </div>
@@ -281,9 +281,9 @@ function DashboardLayoutContent({
                           isActive={active}
                           onClick={() => { setLocation(`/project/${project.id}`); if (isMobile) toggleSidebar(); }}
                           tooltip={project.name}
-                          className="h-8 md:h-8 font-normal text-sm"
+                          className="h-11 md:h-8 font-normal text-base md:text-sm"
                         >
-                          <ClipboardList className={`h-3.5 w-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                          <ClipboardList className={`h-5 w-5 md:h-3.5 md:w-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
                           <span className="truncate">{project.name}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -302,9 +302,9 @@ function DashboardLayoutContent({
                 {!isCollapsed && (
                   <button
                     onClick={() => setShowCreateTag(true)}
-                    className="h-5 w-5 flex items-center justify-center hover:bg-accent rounded transition-colors text-muted-foreground hover:text-foreground"
+                    className="h-10 w-10 md:h-5 md:w-5 flex items-center justify-center hover:bg-accent rounded-lg md:rounded transition-colors text-muted-foreground hover:text-foreground"
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-5 w-5 md:h-3.5 md:w-3.5" />
                   </button>
                 )}
               </div>
@@ -318,10 +318,10 @@ function DashboardLayoutContent({
                           isActive={active}
                           onClick={() => { setLocation(`/tag/${tag.id}`); if (isMobile) toggleSidebar(); }}
                           tooltip={tag.name}
-                          className="h-8 md:h-8 font-normal text-sm"
+                          className="h-11 md:h-8 font-normal text-base md:text-sm"
                         >
                           <div
-                            className="h-2.5 w-2.5 rounded-full shrink-0"
+                            className="h-3.5 w-3.5 md:h-2.5 md:w-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: tag.color ?? "#6366f1" }}
                           />
                           <span className="truncate">{tag.name}</span>
@@ -383,7 +383,7 @@ function DashboardLayoutContent({
 
       <SidebarInset>
         {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
+          <div className="flex border-b h-16 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="h-11 w-11 rounded-lg bg-background" />
               <span className="tracking-tight text-foreground font-medium text-lg">Rhythm</span>
@@ -396,7 +396,7 @@ function DashboardLayoutContent({
             </button>
           </div>
         )}
-        <main className="flex-1 p-4 md:p-6 max-w-4xl">{children}</main>
+        <main className="flex-1 p-5 md:p-6 max-w-4xl">{children}</main>
       </SidebarInset>
 
       {/* Create Area Dialog */}
@@ -405,13 +405,14 @@ function DashboardLayoutContent({
           <DialogHeader>
             <DialogTitle>New Area</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Name</Label>
+          <div className="space-y-5 md:space-y-4 py-2">
+            <div className="space-y-3 md:space-y-2">
+              <Label className="text-base md:text-sm">Name</Label>
               <Input
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 placeholder="e.g. Personal, Sales, Client X"
+                className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
                 autoFocus
                 onKeyDown={e => {
                   if (e.key === "Enter" && newName.trim()) createArea.mutate({ name: newName.trim() });
@@ -419,9 +420,9 @@ function DashboardLayoutContent({
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateArea(false)}>Cancel</Button>
-            <Button onClick={() => createArea.mutate({ name: newName.trim() })} disabled={!newName.trim()}>
+          <DialogFooter className="gap-3 md:gap-2">
+            <Button variant="outline" onClick={() => setShowCreateArea(false)} className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">Cancel</Button>
+            <Button onClick={() => createArea.mutate({ name: newName.trim() })} disabled={!newName.trim()} className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
               Create
             </Button>
           </DialogFooter>
@@ -434,13 +435,14 @@ function DashboardLayoutContent({
           <DialogHeader>
             <DialogTitle>New Project</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Name</Label>
+          <div className="space-y-5 md:space-y-4 py-2">
+            <div className="space-y-3 md:space-y-2">
+              <Label className="text-base md:text-sm">Name</Label>
               <Input
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 placeholder="e.g. Website Redesign"
+                className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
                 autoFocus
                 onKeyDown={e => {
                   if (e.key === "Enter" && newName.trim()) {
@@ -452,10 +454,10 @@ function DashboardLayoutContent({
                 }}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Area (optional)</Label>
+            <div className="space-y-3 md:space-y-2">
+              <Label className="text-base md:text-sm">Area (optional)</Label>
               <Select value={newProjectAreaId} onValueChange={setNewProjectAreaId}>
-                <SelectTrigger>
+                <SelectTrigger className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
                   <SelectValue placeholder="No area" />
                 </SelectTrigger>
                 <SelectContent>
@@ -467,14 +469,15 @@ function DashboardLayoutContent({
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateProject(false)}>Cancel</Button>
+          <DialogFooter className="gap-3 md:gap-2">
+            <Button variant="outline" onClick={() => setShowCreateProject(false)} className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">Cancel</Button>
             <Button
               onClick={() => createProject.mutate({
                 name: newName.trim(),
                 areaId: newProjectAreaId !== "none" ? parseInt(newProjectAreaId) : undefined,
               })}
               disabled={!newName.trim()}
+              className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
             >
               Create
             </Button>
@@ -488,35 +491,36 @@ function DashboardLayoutContent({
           <DialogHeader>
             <DialogTitle>New Tag</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Name</Label>
+          <div className="space-y-5 md:space-y-4 py-2">
+            <div className="space-y-3 md:space-y-2">
+              <Label className="text-base md:text-sm">Name</Label>
               <Input
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 placeholder="e.g. Urgent, Follow-up"
+                className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
                 autoFocus
                 onKeyDown={e => {
                   if (e.key === "Enter" && newName.trim()) createTag.mutate({ name: newName.trim(), color: newTagColor });
                 }}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Color</Label>
-              <div className="flex gap-2 items-center">
+            <div className="space-y-3 md:space-y-2">
+              <Label className="text-base md:text-sm">Color</Label>
+              <div className="flex gap-3 md:gap-2 items-center">
                 <input
                   type="color"
                   value={newTagColor}
                   onChange={e => setNewTagColor(e.target.value)}
-                  className="h-8 w-8 rounded border cursor-pointer"
+                  className="h-12 w-12 md:h-8 md:w-8 rounded-xl md:rounded border cursor-pointer"
                 />
-                <span className="text-sm text-muted-foreground">{newTagColor}</span>
+                <span className="text-base md:text-sm text-muted-foreground">{newTagColor}</span>
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateTag(false)}>Cancel</Button>
-            <Button onClick={() => createTag.mutate({ name: newName.trim(), color: newTagColor })} disabled={!newName.trim()}>
+          <DialogFooter className="gap-3 md:gap-2">
+            <Button variant="outline" onClick={() => setShowCreateTag(false)} className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">Cancel</Button>
+            <Button onClick={() => createTag.mutate({ name: newName.trim(), color: newTagColor })} disabled={!newName.trim()} className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
               Create
             </Button>
           </DialogFooter>

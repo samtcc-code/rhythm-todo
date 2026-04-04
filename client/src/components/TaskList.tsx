@@ -14,7 +14,6 @@ interface TaskListProps {
   defaultDoDate?: string | null;
   defaultDoDateSomeday?: boolean;
   emptyMessage?: string;
-  /** Hide do-date on each task item (useful when the view already implies the date) */
   hideDoDate?: boolean;
 }
 
@@ -33,7 +32,6 @@ export default function TaskList({
   const [newTitle, setNewTitle] = useState("");
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-  // Track whether drag was initiated from the handle
   const handleDragRef = useRef(false);
 
   const createTask = trpc.tasks.create.useMutation({
@@ -59,12 +57,10 @@ export default function TaskList({
 
   const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
     if (!handleDragRef.current) {
-      // Drag was not initiated from the grip handle — cancel it
       e.preventDefault();
       return;
     }
     setDraggedIdx(idx);
-    // Use a semi-transparent drag image
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move";
     }
@@ -100,7 +96,6 @@ export default function TaskList({
     handleDragRef.current = false;
   }, []);
 
-  // Props passed to the drag handle inside TaskItem
   const makeDragHandleProps = useCallback(() => ({
     onMouseDown: () => { handleDragRef.current = true; },
     onMouseUp: () => { handleDragRef.current = false; },
@@ -111,12 +106,13 @@ export default function TaskList({
   return (
     <div>
       {tasks.length === 0 && !showCreate && (
-        <div className="text-center py-12 text-muted-foreground">
-          <p className="text-sm">{emptyMessage}</p>
+        <div className="text-center py-16 md:py-12 text-muted-foreground">
+          <p className="text-base md:text-sm">{emptyMessage}</p>
         </div>
       )}
 
-      <div className="space-y-0.5">
+      {/* Mobile: add spacing between items for easier targeting */}
+      <div className="space-y-1 md:space-y-0.5">
         {tasks.map((task, idx) => (
           <div
             key={task.id}
@@ -125,9 +121,9 @@ export default function TaskList({
             onDragOver={e => handleDragOver(e, idx)}
             onDrop={() => handleDrop(idx)}
             onDragEnd={handleDragEnd}
-            className={`transition-all rounded-lg ${
+            className={`transition-all rounded-xl md:rounded-lg ${
               dragOverIdx === idx && draggedIdx !== null && draggedIdx !== idx
-                ? "ring-2 ring-primary/50 ring-offset-1"
+                ? "ring-2 ring-primary/50 ring-offset-2 md:ring-offset-1"
                 : ""
             } ${draggedIdx === idx ? "opacity-30 scale-[0.98]" : ""}`}
           >
@@ -143,33 +139,33 @@ export default function TaskList({
       </div>
 
       {showCreateInline && (
-        <div className="mt-2">
+        <div className="mt-3 md:mt-2">
           {showCreate ? (
-            <div className="flex items-center gap-2 px-3 py-3 md:py-2">
+            <div className="flex items-center gap-3 md:gap-2 px-4 md:px-3 py-4 md:py-2">
               <Input
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
                 placeholder="New task..."
-                className="text-base md:text-sm h-11 md:h-9"
+                className="text-lg md:text-sm h-14 md:h-9 rounded-xl md:rounded-md"
                 autoFocus
                 onKeyDown={e => {
                   if (e.key === "Enter") handleCreate();
                   if (e.key === "Escape") { setShowCreate(false); setNewTitle(""); }
                 }}
               />
-              <Button size="sm" className="h-11 md:h-9 px-4 md:px-3 text-base md:text-sm" onClick={handleCreate} disabled={!newTitle.trim()}>
+              <Button className="h-14 md:h-9 px-6 md:px-3 text-lg md:text-sm rounded-xl md:rounded-md" onClick={handleCreate} disabled={!newTitle.trim()}>
                 Add
               </Button>
-              <Button size="sm" variant="ghost" className="h-11 md:h-9 px-4 md:px-3 text-base md:text-sm" onClick={() => { setShowCreate(false); setNewTitle(""); }}>
+              <Button variant="ghost" className="h-14 md:h-9 px-5 md:px-3 text-lg md:text-sm rounded-xl md:rounded-md" onClick={() => { setShowCreate(false); setNewTitle(""); }}>
                 Cancel
               </Button>
             </div>
           ) : (
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-3 py-3.5 md:py-2 text-base md:text-sm text-muted-foreground hover:text-foreground transition-colors w-full rounded-lg hover:bg-accent/50"
+              className="flex items-center gap-3 md:gap-2 px-4 md:px-3 py-5 md:py-2 text-lg md:text-sm text-muted-foreground hover:text-foreground transition-colors w-full rounded-xl md:rounded-lg hover:bg-accent/50 active:bg-accent/70"
             >
-              <Plus className="h-5 w-5 md:h-4 md:w-4" />
+              <Plus className="h-6 w-6 md:h-4 md:w-4" />
               <span>New Task</span>
             </button>
           )}

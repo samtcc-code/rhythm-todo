@@ -10,7 +10,6 @@ interface TaskItemProps {
   onClick: () => void;
   users?: { id: number; name: string | null }[];
   dragHandleProps?: Record<string, unknown>;
-  /** Hide the do-date display (e.g. when already in the Today view) */
   hideDoDate?: boolean;
 }
 
@@ -34,29 +33,17 @@ function quadrantColor(q: string) {
   }
 }
 
-/**
- * Safely format a date value that may come from the DB as a Date object
- * or as a string. Uses UTC methods to avoid timezone-offset date shifts.
- */
 function formatDate(d: string | Date | null): string {
   if (!d) return "";
   const date = typeof d === "string" ? new Date(d) : d;
-
   const y = date.getUTCFullYear();
   const m = date.getUTCMonth();
   const day = date.getUTCDate();
-
   const now = new Date();
-  const todayY = now.getFullYear();
-  const todayM = now.getMonth();
-  const todayD = now.getDate();
-
-  if (y === todayY && m === todayM && day === todayD) return "Today";
-
+  if (y === now.getFullYear() && m === now.getMonth() && day === now.getDate()) return "Today";
   const tom = new Date(now);
   tom.setDate(tom.getDate() + 1);
   if (y === tom.getFullYear() && m === tom.getMonth() && day === tom.getDate()) return "Tomorrow";
-
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${months[m]} ${day}`;
 }
@@ -64,11 +51,8 @@ function formatDate(d: string | Date | null): string {
 function formatDueDate(d: string | Date | null): string {
   if (!d) return "";
   const date = typeof d === "string" ? new Date(d) : d;
-  const y = date.getUTCFullYear();
-  const m = date.getUTCMonth();
-  const day = date.getUTCDate();
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${months[m]} ${day}`;
+  return `${months[date.getUTCMonth()]} ${date.getUTCDate()}`;
 }
 
 export default function TaskItem({ task, onClick, users, dragHandleProps, hideDoDate = false }: TaskItemProps) {
@@ -90,63 +74,65 @@ export default function TaskItem({ task, onClick, users, dragHandleProps, hideDo
   return (
     <div
       className={cn(
-        "group flex items-start gap-2 md:gap-2 px-3 py-3 md:py-2.5 rounded-lg transition-colors hover:bg-accent/50 cursor-pointer border border-transparent",
+        // Mobile: very tall rows with generous padding. Desktop: compact.
+        "group flex items-center gap-4 md:gap-2 px-4 md:px-3 py-5 md:py-2.5 rounded-xl md:rounded-lg transition-colors hover:bg-accent/50 cursor-pointer border border-transparent active:bg-accent/70",
         task.isDone && "opacity-50"
       )}
       onClick={onClick}
     >
-      {/* Drag handle — larger touch area on mobile */}
+      {/* Drag handle — very large on mobile */}
       {dragHandleProps && (
         <div
           {...dragHandleProps}
-          className="mt-1 md:mt-0.5 opacity-30 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-muted-foreground touch-none select-none p-1 -m-1 md:p-0 md:m-0"
+          className="shrink-0 flex items-center justify-center w-11 h-11 md:w-auto md:h-auto opacity-50 md:opacity-30 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-muted-foreground touch-none select-none rounded-lg md:rounded-none active:bg-accent/50 md:active:bg-transparent"
           onClick={e => e.stopPropagation()}
         >
-          <GripVertical className="h-5 w-5 md:h-4 md:w-4" />
+          <GripVertical className="h-7 w-7 md:h-4 md:w-4" />
         </div>
       )}
 
-      {/* Checkbox — larger touch area on mobile */}
+      {/* Checkbox — 28px on mobile, 18px on desktop */}
       <div
-        className="mt-1 md:mt-0.5 shrink-0 p-1 -m-1 md:p-0 md:m-0"
+        className="shrink-0 flex items-center justify-center w-12 h-12 md:w-auto md:h-auto -m-1 md:m-0"
         onClick={e => {
           e.stopPropagation();
           toggleDone.mutate({ id: task.id, isDone: !task.isDone });
         }}
       >
-        <Checkbox checked={task.isDone} className="h-6 w-6 md:h-[18px] md:w-[18px] rounded-full" />
+        <Checkbox checked={task.isDone} className="h-7 w-7 md:h-[18px] md:w-[18px] rounded-full" />
       </div>
 
       <div className="flex-1 min-w-0">
         <p className={cn(
-          "text-base md:text-sm leading-snug text-foreground",
+          // Mobile: 18px text. Desktop: 14px.
+          "text-lg md:text-sm leading-normal md:leading-snug text-foreground",
           task.isDone && "line-through text-muted-foreground"
         )}>
           {task.title}
         </p>
 
-        <div className="flex items-center gap-2 mt-1.5 md:mt-1 flex-wrap">
-          <Badge variant="outline" className={cn("text-xs md:text-[10px] px-2 md:px-1.5 py-0.5 md:py-0 h-6 md:h-5 font-medium", quadrantColor(task.quadrant))}>
+        <div className="flex items-center gap-2.5 md:gap-2 mt-2 md:mt-1 flex-wrap">
+          <Badge variant="outline" className={cn("text-sm md:text-[10px] px-2.5 md:px-1.5 py-1 md:py-0 h-7 md:h-5 font-medium", quadrantColor(task.quadrant))}>
             {quadrantLabel(task.quadrant)}
           </Badge>
 
           {doDateStr && (
-            <span className="flex items-center gap-1 text-xs md:text-[11px] text-muted-foreground">
-              <Calendar className="h-3.5 w-3.5 md:h-3 md:w-3" />
+            <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
+              <Calendar className="h-4 w-4 md:h-3 md:w-3" />
               {doDateStr}
             </span>
           )}
 
           {task.dueDate && (
-            <span className="flex items-center gap-1 text-xs md:text-[11px] text-muted-foreground">
-              <Clock className="h-3.5 w-3.5 md:h-3 md:w-3" />
+            <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
+              <Clock className="h-4 w-4 md:h-3 md:w-3" />
               Due {formatDueDate(task.dueDate)}
             </span>
           )}
 
           {ownerName && (
-            <span className="flex items-center gap-1 text-xs md:text-[11px] text-muted-foreground">
-              <User className="h-3.5 w-3.5 md:h-3 md:w-3" />
+            <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
+              <User className="h-4 w-4 md:h-3 md:w-3" />
               {ownerName}
             </span>
           )}

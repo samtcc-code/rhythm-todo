@@ -13,7 +13,7 @@ import {
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
-import { X, Plus, Trash2, Calendar, Clock } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TaskDetailPanelProps {
@@ -123,7 +123,6 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
     });
   }, [taskId, title, notes, isUrgent, isImportant, doDateType, doDate, dueDate, ownerId, areaId, projectId, selectedTagIds, updateTask]);
 
-  // Auto-save on blur or changes to toggles
   const handleBlur = () => save();
 
   if (!taskId) return null;
@@ -144,54 +143,54 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
           <SheetTitle className="sr-only">Edit Task</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-6 pb-8">
+        <div className="space-y-8 md:space-y-6 pb-8">
           {/* Title */}
           <div>
             <Input
               value={title}
               onChange={e => setTitle(e.target.value)}
               onBlur={handleBlur}
-              className="text-lg font-medium border-0 px-0 shadow-none focus-visible:ring-0 bg-transparent"
+              className="text-xl md:text-lg font-medium border-0 px-0 shadow-none focus-visible:ring-0 bg-transparent h-12 md:h-auto"
               placeholder="Task title"
             />
           </div>
 
           {/* Eisenhower Matrix */}
-          <div className="space-y-3">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Eisenhower Matrix</Label>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
+          <div className="space-y-4 md:space-y-3">
+            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Eisenhower Matrix</Label>
+            <div className="flex items-center gap-8 md:gap-6">
+              <div className="flex items-center gap-3 md:gap-2">
                 <Switch
                   checked={isUrgent}
                   onCheckedChange={v => { setIsUrgent(v); setTimeout(save, 50); }}
                 />
-                <span className="text-sm">Urgent</span>
+                <span className="text-base md:text-sm">Urgent</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 md:gap-2">
                 <Switch
                   checked={isImportant}
                   onCheckedChange={v => { setIsImportant(v); setTimeout(save, 50); }}
                 />
-                <span className="text-sm">Important</span>
+                <span className="text-base md:text-sm">Important</span>
               </div>
             </div>
-            <p className={cn("text-sm font-medium", quadrantColorClass)}>
+            <p className={cn("text-base md:text-sm font-medium", quadrantColorClass)}>
               → {quadrant}
             </p>
           </div>
 
           {/* Do Date */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Do Date</Label>
-            <div className="flex items-center gap-2">
+          <div className="space-y-3 md:space-y-2">
+            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Do Date</Label>
+            <div className="flex items-center gap-3 md:gap-2">
               <Select value={doDateType} onValueChange={(v: "date" | "someday" | "none") => { setDoDateType(v); setTimeout(save, 50); }}>
-                <SelectTrigger className="w-36">
+                <SelectTrigger className="w-44 md:w-36 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No date</SelectItem>
-                  <SelectItem value="date">Specific date</SelectItem>
-                  <SelectItem value="someday">Someday</SelectItem>
+                  <SelectItem value="none" className="text-base md:text-sm py-3 md:py-1.5">No date</SelectItem>
+                  <SelectItem value="date" className="text-base md:text-sm py-3 md:py-1.5">Specific date</SelectItem>
+                  <SelectItem value="someday" className="text-base md:text-sm py-3 md:py-1.5">Someday</SelectItem>
                 </SelectContent>
               </Select>
               {doDateType === "date" && (
@@ -200,76 +199,76 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
                   value={doDate}
                   onChange={e => setDoDate(e.target.value)}
                   onBlur={handleBlur}
-                  className="w-44"
+                  className="w-48 md:w-44 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
                 />
               )}
             </div>
           </div>
 
           {/* Due Date */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Due Date (optional)</Label>
+          <div className="space-y-3 md:space-y-2">
+            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Due Date (optional)</Label>
             <Input
               type="date"
               value={dueDate}
               onChange={e => setDueDate(e.target.value)}
               onBlur={handleBlur}
-              className="w-44"
+              className="w-48 md:w-44 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
             />
           </div>
 
           {/* Owner */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Owner</Label>
+          <div className="space-y-3 md:space-y-2">
+            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Owner</Label>
             <Select value={ownerId} onValueChange={v => { setOwnerId(v); setTimeout(save, 50); }}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-56 md:w-48 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
                 <SelectValue placeholder="Unassigned" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Unassigned</SelectItem>
+                <SelectItem value="none" className="text-base md:text-sm py-3 md:py-1.5">Unassigned</SelectItem>
                 {usersQuery.data?.map(u => (
-                  <SelectItem key={u.id} value={String(u.id)}>{u.name ?? u.email ?? `User ${u.id}`}</SelectItem>
+                  <SelectItem key={u.id} value={String(u.id)} className="text-base md:text-sm py-3 md:py-1.5">{u.name ?? u.email ?? `User ${u.id}`}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           {/* Area */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Area</Label>
+          <div className="space-y-3 md:space-y-2">
+            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Area</Label>
             <Select value={areaId} onValueChange={v => { setAreaId(v); setTimeout(save, 50); }}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-56 md:w-48 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
                 <SelectValue placeholder="No area" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No area</SelectItem>
+                <SelectItem value="none" className="text-base md:text-sm py-3 md:py-1.5">No area</SelectItem>
                 {areasQuery.data?.map(a => (
-                  <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
+                  <SelectItem key={a.id} value={String(a.id)} className="text-base md:text-sm py-3 md:py-1.5">{a.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           {/* Project */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Project</Label>
+          <div className="space-y-3 md:space-y-2">
+            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Project</Label>
             <Select value={projectId} onValueChange={v => { setProjectId(v); setTimeout(save, 50); }}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-56 md:w-48 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
                 <SelectValue placeholder="No project" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No project</SelectItem>
+                <SelectItem value="none" className="text-base md:text-sm py-3 md:py-1.5">No project</SelectItem>
                 {projectsQuery.data?.map(p => (
-                  <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+                  <SelectItem key={p.id} value={String(p.id)} className="text-base md:text-sm py-3 md:py-1.5">{p.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           {/* Tags */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Tags</Label>
-            <div className="flex flex-wrap gap-1.5">
+          <div className="space-y-3 md:space-y-2">
+            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Tags</Label>
+            <div className="flex flex-wrap gap-2.5 md:gap-1.5">
               {tagsQuery.data?.map(tag => {
                 const isSelected = selectedTagIds.includes(tag.id);
                 return (
@@ -277,7 +276,7 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
                     key={tag.id}
                     variant={isSelected ? "default" : "outline"}
                     className={cn(
-                      "cursor-pointer text-xs transition-colors",
+                      "cursor-pointer text-base md:text-xs px-3 md:px-2 py-2 md:py-0.5 h-auto transition-colors rounded-xl md:rounded-md",
                       isSelected && "bg-primary text-primary-foreground"
                     )}
                     onClick={() => {
@@ -289,7 +288,7 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
                     }}
                   >
                     <div
-                      className="h-2 w-2 rounded-full mr-1"
+                      className="h-3 w-3 md:h-2 md:w-2 rounded-full mr-1.5 md:mr-1"
                       style={{ backgroundColor: tag.color ?? "#6366f1" }}
                     />
                     {tag.name}
@@ -300,46 +299,51 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
           </div>
 
           {/* Notes */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Notes</Label>
+          <div className="space-y-3 md:space-y-2">
+            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Notes</Label>
             <Textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               onBlur={handleBlur}
               placeholder="Add notes..."
-              className="min-h-[100px] resize-y"
+              className="min-h-[120px] md:min-h-[100px] resize-y text-base md:text-sm rounded-xl md:rounded-md"
             />
           </div>
 
           {/* Subtasks */}
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Subtasks</Label>
-            <div className="space-y-1">
+          <div className="space-y-3 md:space-y-2">
+            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Subtasks</Label>
+            <div className="space-y-2 md:space-y-1">
               {task?.subtasks?.map(sub => (
-                <div key={sub.id} className="flex items-center gap-2 group">
-                  <Checkbox
-                    checked={sub.isDone}
-                    onCheckedChange={v => updateSubtask.mutate({ id: sub.id, isDone: !!v })}
-                    className="h-4 w-4 rounded"
-                  />
-                  <span className={cn("text-sm flex-1", sub.isDone && "line-through text-muted-foreground")}>
+                <div key={sub.id} className="flex items-center gap-3 md:gap-2 group py-2 md:py-0.5">
+                  <div
+                    className="shrink-0 flex items-center justify-center w-10 h-10 md:w-auto md:h-auto"
+                    onClick={() => updateSubtask.mutate({ id: sub.id, isDone: !sub.isDone })}
+                  >
+                    <Checkbox
+                      checked={sub.isDone}
+                      onCheckedChange={v => updateSubtask.mutate({ id: sub.id, isDone: !!v })}
+                      className="h-6 w-6 md:h-4 md:w-4 rounded"
+                    />
+                  </div>
+                  <span className={cn("text-base md:text-sm flex-1", sub.isDone && "line-through text-muted-foreground")}>
                     {sub.title}
                   </span>
                   <button
                     onClick={() => deleteSubtask.mutate({ id: sub.id })}
-                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all h-5 w-5 flex items-center justify-center"
+                    className="text-muted-foreground hover:text-destructive transition-all h-10 w-10 md:h-5 md:w-5 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-5 w-5 md:h-3 md:w-3" />
                   </button>
                 </div>
               ))}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 md:gap-2">
               <Input
                 value={newSubtaskTitle}
                 onChange={e => setNewSubtaskTitle(e.target.value)}
                 placeholder="Add subtask..."
-                className="text-sm h-8"
+                className="text-base md:text-sm h-12 md:h-8 rounded-xl md:rounded-md"
                 onKeyDown={e => {
                   if (e.key === "Enter" && newSubtaskTitle.trim() && taskId) {
                     createSubtask.mutate({ taskId, title: newSubtaskTitle.trim() });
@@ -348,9 +352,8 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
                 }}
               />
               <Button
-                size="sm"
                 variant="ghost"
-                className="h-8 px-2"
+                className="h-12 w-12 md:h-8 md:w-8 md:px-2 rounded-xl md:rounded-md shrink-0"
                 onClick={() => {
                   if (newSubtaskTitle.trim() && taskId) {
                     createSubtask.mutate({ taskId, title: newSubtaskTitle.trim() });
@@ -358,19 +361,19 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
                   }
                 }}
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-6 w-6 md:h-4 md:w-4" />
               </Button>
             </div>
           </div>
 
           {/* Delete */}
-          <div className="pt-4 border-t">
+          <div className="pt-6 md:pt-4 border-t">
             <Button
               variant="ghost"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
               onClick={() => { if (taskId) deleteTask.mutate({ id: taskId }); }}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-5 w-5 md:h-4 md:w-4 mr-2" />
               Delete Task
             </Button>
           </div>

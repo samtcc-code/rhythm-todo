@@ -44,24 +44,24 @@ export default function MatrixView() {
     allTasks.data?.filter(t => t.quadrant === key) ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 md:space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Eisenhower Matrix</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h1 className="text-3xl md:text-2xl font-semibold tracking-tight text-foreground">Eisenhower Matrix</h1>
+        <p className="text-base md:text-sm text-muted-foreground mt-1">
           Prioritize by urgency and importance. Re-evaluate Do Later items daily.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4">
         {quadrants.map(q => {
           const tasks = tasksByQuadrant(q.key);
           return (
-            <div key={q.key} className={cn("rounded-xl border p-4 min-h-[200px]", q.color)}>
-              <div className="mb-3">
-                <h2 className={cn("text-sm font-semibold", q.headerColor)}>{q.title}</h2>
-                <p className="text-[11px] text-muted-foreground">{q.subtitle}</p>
+            <div key={q.key} className={cn("rounded-2xl md:rounded-xl border p-5 md:p-4 min-h-[200px]", q.color)}>
+              <div className="mb-4 md:mb-3">
+                <h2 className={cn("text-lg md:text-sm font-semibold", q.headerColor)}>{q.title}</h2>
+                <p className="text-sm md:text-[11px] text-muted-foreground">{q.subtitle}</p>
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-1 md:space-y-0.5">
                 {tasks.map(task => (
                   <TaskItem
                     key={task.id}
@@ -71,7 +71,7 @@ export default function MatrixView() {
                   />
                 ))}
                 {tasks.length === 0 && (
-                  <p className="text-xs text-muted-foreground py-4 text-center">No tasks</p>
+                  <p className="text-base md:text-xs text-muted-foreground py-6 md:py-4 text-center">No tasks</p>
                 )}
               </div>
             </div>

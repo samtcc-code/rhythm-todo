@@ -33,3 +33,4 @@
 - [x] UI: Use different icons for Areas vs Projects in sidebar
 - [x] UI: Auto-collapse sidebar on mobile when navigating to an Area or Project
 - [x] UI: Increase all touch targets, text sizes, padding on mobile for easier thumb interaction
+- [x] Bug fix: Mobile touch targets still too small — overcorrect with much larger sizes everywhere

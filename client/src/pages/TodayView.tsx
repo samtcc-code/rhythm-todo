@@ -45,19 +45,15 @@ export default function TodayView() {
     onSuccess: () => { utils.tasks.list.invalidate(); },
   });
 
-  // Brain dump state
   const [showBrainDump, setShowBrainDump] = useState(false);
   const [dumpItems, setDumpItems] = useState<BrainDumpItem[]>([]);
   const [dumpInput, setDumpInput] = useState("");
 
-  // Evening sift state
   const [showEveningSift, setShowEveningSift] = useState(false);
   const [siftSelected, setSiftSelected] = useState<Set<number>>(new Set());
 
   const incompleteTasks = todayTasks.data?.filter(t => !t.isDone) ?? [];
   const completedTasks = todayTasks.data?.filter(t => t.isDone) ?? [];
-
-  // ─── Brain Dump ───────────────────────────────────────────────
 
   const handleOpenBrainDump = () => {
     setDumpItems([]);
@@ -107,8 +103,6 @@ export default function TodayView() {
     return "text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/30";
   };
 
-  // ─── Evening Sift ─────────────────────────────────────────────
-
   const handleEveningSift = () => {
     setSiftSelected(new Set());
     setShowEveningSift(true);
@@ -138,32 +132,30 @@ export default function TodayView() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 md:space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Today</h1>
-          <p className="text-sm text-muted-foreground mt-1">{todayFormatted}</p>
+          <h1 className="text-3xl md:text-2xl font-semibold tracking-tight text-foreground">Today</h1>
+          <p className="text-base md:text-sm text-muted-foreground mt-1">{todayFormatted}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 md:gap-2">
           <Button
             variant="outline"
-            size="sm"
             onClick={handleOpenBrainDump}
-            className="gap-1.5 h-10 md:h-9 px-3 md:px-3 text-sm"
+            className="gap-2 md:gap-1.5 h-12 md:h-9 px-4 md:px-3 text-base md:text-sm rounded-xl md:rounded-md"
           >
-            <Sunrise className="h-4 w-4" />
+            <Sunrise className="h-5 w-5 md:h-4 md:w-4" />
             <span className="hidden sm:inline">Brain Dump</span>
             <span className="sm:hidden">Dump</span>
           </Button>
           <Button
             variant="outline"
-            size="sm"
             onClick={handleEveningSift}
-            className="gap-1.5 h-10 md:h-9 px-3 md:px-3 text-sm"
+            className="gap-2 md:gap-1.5 h-12 md:h-9 px-4 md:px-3 text-base md:text-sm rounded-xl md:rounded-md"
             disabled={incompleteTasks.length === 0}
           >
-            <Sunset className="h-4 w-4" />
+            <Sunset className="h-5 w-5 md:h-4 md:w-4" />
             <span className="hidden sm:inline">Evening Sift</span>
             <span className="sm:hidden">Sift</span>
           </Button>
@@ -173,7 +165,7 @@ export default function TodayView() {
       {/* Active tasks */}
       <div>
         {incompleteTasks.length > 0 && (
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 px-1">
+          <p className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground mb-3 md:mb-2 px-1">
             To Do ({incompleteTasks.length})
           </p>
         )}
@@ -189,7 +181,7 @@ export default function TodayView() {
       {/* Completed tasks */}
       {completedTasks.length > 0 && (
         <div>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 px-1">
+          <p className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground mb-3 md:mb-2 px-1">
             Done ({completedTasks.length})
           </p>
           <TaskList
@@ -203,88 +195,90 @@ export default function TodayView() {
 
       {/* Morning Brain Dump Dialog */}
       <Dialog open={showBrainDump} onOpenChange={setShowBrainDump}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sunrise className="h-5 w-5 text-amber-500" />
+            <DialogTitle className="flex items-center gap-2 text-xl md:text-lg">
+              <Sunrise className="h-6 w-6 md:h-5 md:w-5 text-amber-500" />
               Morning Brain Dump
             </DialogTitle>
-            <DialogDescription>
-              Capture everything on your mind. Tag each item as urgent/important, then decide what's for today.
+            <DialogDescription className="text-base md:text-sm">
+              Capture everything on your mind. Tag each item, then decide what's for today.
             </DialogDescription>
           </DialogHeader>
 
           {/* Quick add */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 md:gap-2">
             <Input
               value={dumpInput}
               onChange={e => setDumpInput(e.target.value)}
               placeholder="What's on your mind?"
-              className="text-sm"
+              className="text-lg md:text-sm h-14 md:h-9 rounded-xl md:rounded-md"
               autoFocus
               onKeyDown={e => { if (e.key === "Enter") addDumpItem(); }}
             />
-            <Button size="sm" onClick={addDumpItem} disabled={!dumpInput.trim()}>
-              <Plus className="h-4 w-4" />
+            <Button onClick={addDumpItem} disabled={!dumpInput.trim()} className="h-14 md:h-9 w-14 md:w-9 rounded-xl md:rounded-md shrink-0">
+              <Plus className="h-6 w-6 md:h-4 md:w-4" />
             </Button>
           </div>
 
           {/* Items list */}
-          <div className="space-y-2 max-h-72 overflow-y-auto py-1">
+          <div className="space-y-3 md:space-y-2 max-h-72 overflow-y-auto py-1">
             {dumpItems.map((item, idx) => (
-              <div key={idx} className="rounded-lg border p-3 space-y-2">
+              <div key={idx} className="rounded-xl md:rounded-lg border p-4 md:p-3 space-y-3 md:space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{item.title}</span>
-                  <button onClick={() => removeDumpItem(idx)} className="text-muted-foreground hover:text-destructive">
-                    <X className="h-3.5 w-3.5" />
+                  <span className="text-base md:text-sm font-medium">{item.title}</span>
+                  <button
+                    onClick={() => removeDumpItem(idx)}
+                    className="text-muted-foreground hover:text-destructive p-2 md:p-0 -m-2 md:m-0"
+                  >
+                    <X className="h-5 w-5 md:h-3.5 md:w-3.5" />
                   </button>
                 </div>
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-5 md:gap-4 flex-wrap">
+                  <div className="flex items-center gap-2.5 md:gap-1.5">
                     <Switch
                       checked={item.isUrgent}
                       onCheckedChange={v => updateDumpItem(idx, "isUrgent", v)}
-                      className="scale-75"
                     />
-                    <Label className="text-xs">Urgent</Label>
+                    <Label className="text-base md:text-xs">Urgent</Label>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2.5 md:gap-1.5">
                     <Switch
                       checked={item.isImportant}
                       onCheckedChange={v => updateDumpItem(idx, "isImportant", v)}
-                      className="scale-75"
                     />
-                    <Label className="text-xs">Important</Label>
+                    <Label className="text-base md:text-xs">Important</Label>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2.5 md:gap-1.5">
                     <Switch
                       checked={item.forToday}
                       onCheckedChange={v => updateDumpItem(idx, "forToday", v)}
-                      className="scale-75"
                     />
-                    <Label className="text-xs">Today</Label>
+                    <Label className="text-base md:text-xs">Today</Label>
                   </div>
-                  <Badge variant="outline" className={`text-[10px] ${getQuadrantColor(item.isUrgent, item.isImportant)}`}>
+                  <Badge variant="outline" className={`text-sm md:text-[10px] px-2.5 md:px-1.5 py-1 md:py-0 ${getQuadrantColor(item.isUrgent, item.isImportant)}`}>
                     {getQuadrantLabel(item.isUrgent, item.isImportant)}
                   </Badge>
                 </div>
               </div>
             ))}
             {dumpItems.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-6">
+              <p className="text-base md:text-sm text-muted-foreground text-center py-8 md:py-6">
                 Start typing to capture your thoughts. Press Enter to add each one.
               </p>
             )}
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBrainDump(false)}>Cancel</Button>
+          <DialogFooter className="gap-3 md:gap-2">
+            <Button variant="outline" onClick={() => setShowBrainDump(false)} className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
+              Cancel
+            </Button>
             <Button
               onClick={handleSubmitBrainDump}
               disabled={dumpItems.length === 0 || createTask.isPending}
-              className="gap-1.5"
+              className="gap-2 md:gap-1.5 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
             >
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-5 w-5 md:h-4 md:w-4" />
               Create {dumpItems.length} Task{dumpItems.length !== 1 ? "s" : ""}
             </Button>
           </DialogFooter>
@@ -293,43 +287,45 @@ export default function TodayView() {
 
       {/* Evening Sift Dialog */}
       <Dialog open={showEveningSift} onOpenChange={setShowEveningSift}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sunset className="h-5 w-5 text-amber-500" />
+            <DialogTitle className="flex items-center gap-2 text-xl md:text-lg">
+              <Sunset className="h-6 w-6 md:h-5 md:w-5 text-amber-500" />
               Evening Sift
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-base md:text-sm">
               Select incomplete tasks to push to tomorrow for re-prioritization.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-1 max-h-80 overflow-y-auto py-2">
+          <div className="space-y-1.5 md:space-y-1 max-h-80 overflow-y-auto py-2">
             {incompleteTasks.map(task => (
               <div
                 key={task.id}
-                className="flex items-center gap-3 px-3 py-3 md:py-2 rounded-lg hover:bg-accent/50 cursor-pointer"
+                className="flex items-center gap-4 md:gap-3 px-4 md:px-3 py-4 md:py-2 rounded-xl md:rounded-lg hover:bg-accent/50 cursor-pointer active:bg-accent/70"
                 onClick={() => toggleSiftItem(task.id)}
               >
                 <Checkbox
                   checked={siftSelected.has(task.id)}
                   onCheckedChange={() => toggleSiftItem(task.id)}
-                  className="h-5 w-5 md:h-4 md:w-4"
+                  className="h-7 w-7 md:h-4 md:w-4"
                 />
-                <span className="text-base md:text-sm flex-1">{task.title}</span>
-                <Badge variant="outline" className="text-xs md:text-[10px]">
+                <span className="text-lg md:text-sm flex-1">{task.title}</span>
+                <Badge variant="outline" className="text-sm md:text-[10px] px-2.5 md:px-1.5 py-1 md:py-0">
                   {task.quadrant === "doNow" ? "Do Now" : task.quadrant === "doLater" ? "Do Later" : task.quadrant === "delegate" ? "Delegate" : "Delete"}
                 </Badge>
               </div>
             ))}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEveningSift(false)}>Cancel</Button>
+          <DialogFooter className="gap-3 md:gap-2">
+            <Button variant="outline" onClick={() => setShowEveningSift(false)} className="h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
+              Cancel
+            </Button>
             <Button
               onClick={handlePushToTomorrow}
               disabled={siftSelected.size === 0}
-              className="gap-1.5"
+              className="gap-2 md:gap-1.5 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
             >
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-5 w-5 md:h-4 md:w-4" />
               Push {siftSelected.size} to Tomorrow
             </Button>
           </DialogFooter>
