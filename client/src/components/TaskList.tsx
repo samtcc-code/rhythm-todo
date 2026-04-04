@@ -145,31 +145,31 @@ export default function TaskList({
       {showCreateInline && (
         <div className="mt-2">
           {showCreate ? (
-            <div className="flex items-center gap-2 px-3 py-2">
+            <div className="flex items-center gap-2 px-3 py-3 md:py-2">
               <Input
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
                 placeholder="New task..."
-                className="text-sm h-9"
+                className="text-base md:text-sm h-11 md:h-9"
                 autoFocus
                 onKeyDown={e => {
                   if (e.key === "Enter") handleCreate();
                   if (e.key === "Escape") { setShowCreate(false); setNewTitle(""); }
                 }}
               />
-              <Button size="sm" onClick={handleCreate} disabled={!newTitle.trim()}>
+              <Button size="sm" className="h-11 md:h-9 px-4 md:px-3 text-base md:text-sm" onClick={handleCreate} disabled={!newTitle.trim()}>
                 Add
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => { setShowCreate(false); setNewTitle(""); }}>
+              <Button size="sm" variant="ghost" className="h-11 md:h-9 px-4 md:px-3 text-base md:text-sm" onClick={() => { setShowCreate(false); setNewTitle(""); }}>
                 Cancel
               </Button>
             </div>
           ) : (
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full rounded-lg hover:bg-accent/50"
+              className="flex items-center gap-2 px-3 py-3.5 md:py-2 text-base md:text-sm text-muted-foreground hover:text-foreground transition-colors w-full rounded-lg hover:bg-accent/50"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-5 w-5 md:h-4 md:w-4" />
               <span>New Task</span>
             </button>
           )}

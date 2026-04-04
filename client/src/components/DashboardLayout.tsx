@@ -29,7 +29,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import {
   Sun, Moon, Calendar, Inbox, Grid3X3, LogOut, PanelLeft,
-  FolderOpen, Tag, Plus, MoreHorizontal, Layers, CheckSquare,
+  FolderOpen, ClipboardList, Tag, Plus, MoreHorizontal, Layers, CheckSquare,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -206,7 +206,7 @@ function DashboardLayoutContent({
                     <SidebarMenuItem key={item.path}>
                       <SidebarMenuButton
                         isActive={active}
-                        onClick={() => setLocation(item.path)}
+                        onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
                         tooltip={item.label}
                         className="h-9 transition-all font-normal"
                       >
@@ -242,9 +242,9 @@ function DashboardLayoutContent({
                       <SidebarMenuItem key={area.id}>
                         <SidebarMenuButton
                           isActive={active}
-                          onClick={() => setLocation(`/area/${area.id}`)}
+                          onClick={() => { setLocation(`/area/${area.id}`); if (isMobile) toggleSidebar(); }}
                           tooltip={area.name}
-                          className="h-8 font-normal text-sm"
+                          className="h-8 md:h-8 font-normal text-sm"
                         >
                           <FolderOpen className={`h-3.5 w-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
                           <span className="truncate">{area.name}</span>
@@ -279,11 +279,11 @@ function DashboardLayoutContent({
                       <SidebarMenuItem key={project.id}>
                         <SidebarMenuButton
                           isActive={active}
-                          onClick={() => setLocation(`/project/${project.id}`)}
+                          onClick={() => { setLocation(`/project/${project.id}`); if (isMobile) toggleSidebar(); }}
                           tooltip={project.name}
-                          className="h-8 font-normal text-sm"
+                          className="h-8 md:h-8 font-normal text-sm"
                         >
-                          <FolderOpen className={`h-3.5 w-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                          <ClipboardList className={`h-3.5 w-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
                           <span className="truncate">{project.name}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -316,9 +316,9 @@ function DashboardLayoutContent({
                       <SidebarMenuItem key={tag.id}>
                         <SidebarMenuButton
                           isActive={active}
-                          onClick={() => setLocation(`/tag/${tag.id}`)}
+                          onClick={() => { setLocation(`/tag/${tag.id}`); if (isMobile) toggleSidebar(); }}
                           tooltip={tag.name}
-                          className="h-8 font-normal text-sm"
+                          className="h-8 md:h-8 font-normal text-sm"
                         >
                           <div
                             className="h-2.5 w-2.5 rounded-full shrink-0"
@@ -383,16 +383,16 @@ function DashboardLayoutContent({
 
       <SidebarInset>
         {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
+          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
             <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <span className="tracking-tight text-foreground font-medium">Rhythm</span>
+              <SidebarTrigger className="h-11 w-11 rounded-lg bg-background" />
+              <span className="tracking-tight text-foreground font-medium text-lg">Rhythm</span>
             </div>
             <button
               onClick={toggleTheme}
-              className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
+              className="h-11 w-11 flex items-center justify-center rounded-lg hover:bg-accent transition-colors"
             >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
           </div>
         )}

@@ -42,7 +42,6 @@ function formatDate(d: string | Date | null): string {
   if (!d) return "";
   const date = typeof d === "string" ? new Date(d) : d;
 
-  // Use UTC values to avoid timezone shifts on date-only fields
   const y = date.getUTCFullYear();
   const m = date.getUTCMonth();
   const day = date.getUTCDate();
@@ -80,7 +79,6 @@ export default function TaskItem({ task, onClick, users, dragHandleProps, hideDo
 
   const ownerName = users?.find(u => u.id === task.ownerId)?.name;
 
-  // Compute do-date display string (only if not hidden)
   const doDateStr = hideDoDate
     ? null
     : task.doDateSomeday
@@ -92,61 +90,63 @@ export default function TaskItem({ task, onClick, users, dragHandleProps, hideDo
   return (
     <div
       className={cn(
-        "group flex items-start gap-2 px-3 py-2.5 rounded-lg transition-colors hover:bg-accent/50 cursor-pointer border border-transparent",
+        "group flex items-start gap-2 md:gap-2 px-3 py-3 md:py-2.5 rounded-lg transition-colors hover:bg-accent/50 cursor-pointer border border-transparent",
         task.isDone && "opacity-50"
       )}
       onClick={onClick}
     >
+      {/* Drag handle — larger touch area on mobile */}
       {dragHandleProps && (
         <div
           {...dragHandleProps}
-          className="mt-0.5 opacity-30 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-muted-foreground touch-none select-none"
+          className="mt-1 md:mt-0.5 opacity-30 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-muted-foreground touch-none select-none p-1 -m-1 md:p-0 md:m-0"
           onClick={e => e.stopPropagation()}
         >
-          <GripVertical className="h-4 w-4" />
+          <GripVertical className="h-5 w-5 md:h-4 md:w-4" />
         </div>
       )}
 
+      {/* Checkbox — larger touch area on mobile */}
       <div
-        className="mt-0.5 shrink-0"
+        className="mt-1 md:mt-0.5 shrink-0 p-1 -m-1 md:p-0 md:m-0"
         onClick={e => {
           e.stopPropagation();
           toggleDone.mutate({ id: task.id, isDone: !task.isDone });
         }}
       >
-        <Checkbox checked={task.isDone} className="h-[18px] w-[18px] rounded-full" />
+        <Checkbox checked={task.isDone} className="h-6 w-6 md:h-[18px] md:w-[18px] rounded-full" />
       </div>
 
       <div className="flex-1 min-w-0">
         <p className={cn(
-          "text-sm leading-snug text-foreground",
+          "text-base md:text-sm leading-snug text-foreground",
           task.isDone && "line-through text-muted-foreground"
         )}>
           {task.title}
         </p>
 
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
-          <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5 font-medium", quadrantColor(task.quadrant))}>
+        <div className="flex items-center gap-2 mt-1.5 md:mt-1 flex-wrap">
+          <Badge variant="outline" className={cn("text-xs md:text-[10px] px-2 md:px-1.5 py-0.5 md:py-0 h-6 md:h-5 font-medium", quadrantColor(task.quadrant))}>
             {quadrantLabel(task.quadrant)}
           </Badge>
 
           {doDateStr && (
-            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Calendar className="h-3 w-3" />
+            <span className="flex items-center gap-1 text-xs md:text-[11px] text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5 md:h-3 md:w-3" />
               {doDateStr}
             </span>
           )}
 
           {task.dueDate && (
-            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Clock className="h-3 w-3" />
+            <span className="flex items-center gap-1 text-xs md:text-[11px] text-muted-foreground">
+              <Clock className="h-3.5 w-3.5 md:h-3 md:w-3" />
               Due {formatDueDate(task.dueDate)}
             </span>
           )}
 
           {ownerName && (
-            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <User className="h-3 w-3" />
+            <span className="flex items-center gap-1 text-xs md:text-[11px] text-muted-foreground">
+              <User className="h-3.5 w-3.5 md:h-3 md:w-3" />
               {ownerName}
             </span>
           )}

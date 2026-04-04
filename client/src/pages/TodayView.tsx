@@ -140,7 +140,7 @@ export default function TodayView() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Today</h1>
           <p className="text-sm text-muted-foreground mt-1">{todayFormatted}</p>
@@ -150,20 +150,22 @@ export default function TodayView() {
             variant="outline"
             size="sm"
             onClick={handleOpenBrainDump}
-            className="gap-1.5"
+            className="gap-1.5 h-10 md:h-9 px-3 md:px-3 text-sm"
           >
             <Sunrise className="h-4 w-4" />
-            Brain Dump
+            <span className="hidden sm:inline">Brain Dump</span>
+            <span className="sm:hidden">Dump</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleEveningSift}
-            className="gap-1.5"
+            className="gap-1.5 h-10 md:h-9 px-3 md:px-3 text-sm"
             disabled={incompleteTasks.length === 0}
           >
             <Sunset className="h-4 w-4" />
-            Evening Sift
+            <span className="hidden sm:inline">Evening Sift</span>
+            <span className="sm:hidden">Sift</span>
           </Button>
         </div>
       </div>
@@ -305,15 +307,16 @@ export default function TodayView() {
             {incompleteTasks.map(task => (
               <div
                 key={task.id}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent/50 cursor-pointer"
+                className="flex items-center gap-3 px-3 py-3 md:py-2 rounded-lg hover:bg-accent/50 cursor-pointer"
                 onClick={() => toggleSiftItem(task.id)}
               >
                 <Checkbox
                   checked={siftSelected.has(task.id)}
                   onCheckedChange={() => toggleSiftItem(task.id)}
+                  className="h-5 w-5 md:h-4 md:w-4"
                 />
-                <span className="text-sm flex-1">{task.title}</span>
-                <Badge variant="outline" className="text-[10px]">
+                <span className="text-base md:text-sm flex-1">{task.title}</span>
+                <Badge variant="outline" className="text-xs md:text-[10px]">
                   {task.quadrant === "doNow" ? "Do Now" : task.quadrant === "doLater" ? "Do Later" : task.quadrant === "delegate" ? "Delegate" : "Delete"}
                 </Badge>
               </div>

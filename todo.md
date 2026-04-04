@@ -30,3 +30,6 @@
 - [x] Vitest tests for backend procedures
 - [x] Bug fix: Drag-and-drop reordering not clearly working on Today list
 - [x] Bug fix: Redundant and incorrect date (April 2) showing on tasks in Today view
+- [x] UI: Use different icons for Areas vs Projects in sidebar
+- [x] UI: Auto-collapse sidebar on mobile when navigating to an Area or Project
+- [x] UI: Increase all touch targets, text sizes, padding on mobile for easier thumb interaction
