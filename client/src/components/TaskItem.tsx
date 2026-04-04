@@ -10,6 +10,8 @@ interface TaskItemProps {
   onClick: () => void;
   users?: { id: number; name: string | null }[];
   dragHandleProps?: Record<string, unknown>;
+  /** Hide the do-date display (e.g. when already in the Today view) */
+  hideDoDate?: boolean;
 }
 
 function quadrantLabel(q: string) {
@@ -32,18 +34,60 @@ function quadrantColor(q: string) {
   }
 }
 
-export default function TaskItem({ task, onClick, users, dragHandleProps }: TaskItemProps) {
+/**
+ * Safely format a date value that may come from the DB as a Date object
+ * or as a string. Uses UTC methods to avoid timezone-offset date shifts.
+ */
+function formatDate(d: string | Date | null): string {
+  if (!d) return "";
+  const date = typeof d === "string" ? new Date(d) : d;
+
+  // Use UTC values to avoid timezone shifts on date-only fields
+  const y = date.getUTCFullYear();
+  const m = date.getUTCMonth();
+  const day = date.getUTCDate();
+
+  const now = new Date();
+  const todayY = now.getFullYear();
+  const todayM = now.getMonth();
+  const todayD = now.getDate();
+
+  if (y === todayY && m === todayM && day === todayD) return "Today";
+
+  const tom = new Date(now);
+  tom.setDate(tom.getDate() + 1);
+  if (y === tom.getFullYear() && m === tom.getMonth() && day === tom.getDate()) return "Tomorrow";
+
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[m]} ${day}`;
+}
+
+function formatDueDate(d: string | Date | null): string {
+  if (!d) return "";
+  const date = typeof d === "string" ? new Date(d) : d;
+  const y = date.getUTCFullYear();
+  const m = date.getUTCMonth();
+  const day = date.getUTCDate();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[m]} ${day}`;
+}
+
+export default function TaskItem({ task, onClick, users, dragHandleProps, hideDoDate = false }: TaskItemProps) {
   const utils = trpc.useUtils();
   const toggleDone = trpc.tasks.update.useMutation({
     onSuccess: () => { utils.tasks.list.invalidate(); },
   });
 
   const ownerName = users?.find(u => u.id === task.ownerId)?.name;
-  const doDateStr = task.doDateSomeday
-    ? "Someday"
-    : task.doDate
-      ? formatDate(task.doDate)
-      : null;
+
+  // Compute do-date display string (only if not hidden)
+  const doDateStr = hideDoDate
+    ? null
+    : task.doDateSomeday
+      ? "Someday"
+      : task.doDate
+        ? formatDate(task.doDate)
+        : null;
 
   return (
     <div
@@ -56,7 +100,7 @@ export default function TaskItem({ task, onClick, users, dragHandleProps }: Task
       {dragHandleProps && (
         <div
           {...dragHandleProps}
-          className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-muted-foreground"
+          className="mt-0.5 opacity-30 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-muted-foreground touch-none select-none"
           onClick={e => e.stopPropagation()}
         >
           <GripVertical className="h-4 w-4" />
@@ -96,7 +140,7 @@ export default function TaskItem({ task, onClick, users, dragHandleProps }: Task
           {task.dueDate && (
             <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
               <Clock className="h-3 w-3" />
-              Due {formatDate(task.dueDate)}
+              Due {formatDueDate(task.dueDate)}
             </span>
           )}
 
@@ -110,20 +154,4 @@ export default function TaskItem({ task, onClick, users, dragHandleProps }: Task
       </div>
     </div>
   );
-}
-
-function formatDate(d: string | Date | null): string {
-  if (!d) return "";
-  const date = typeof d === "string" ? new Date(d + "T00:00:00") : d;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const taskDate = new Date(date);
-  taskDate.setHours(0, 0, 0, 0);
-
-  if (taskDate.getTime() === today.getTime()) return "Today";
-  if (taskDate.getTime() === tomorrow.getTime()) return "Tomorrow";
-
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

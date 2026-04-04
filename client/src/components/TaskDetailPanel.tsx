@@ -72,13 +72,32 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
         setDoDate("");
       } else if (task.doDate) {
         setDoDateType("date");
-        const d = task.doDate;
-        setDoDate(typeof d === "string" ? d : (d as Date).toISOString().split("T")[0]);
+        const d = task.doDate as unknown;
+        if (d instanceof Date) {
+          const yyyy = d.getUTCFullYear();
+          const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+          const dd = String(d.getUTCDate()).padStart(2, "0");
+          setDoDate(`${yyyy}-${mm}-${dd}`);
+        } else {
+          setDoDate(String(d).split("T")[0]);
+        }
       } else {
         setDoDateType("none");
         setDoDate("");
       }
-      setDueDate(task.dueDate ? (typeof task.dueDate === "string" ? task.dueDate : (task.dueDate as Date).toISOString().split("T")[0]) : "");
+      if (task.dueDate) {
+        const dd = task.dueDate as unknown;
+        if (dd instanceof Date) {
+          const yyyy = dd.getUTCFullYear();
+          const mm = String(dd.getUTCMonth() + 1).padStart(2, "0");
+          const day = String(dd.getUTCDate()).padStart(2, "0");
+          setDueDate(`${yyyy}-${mm}-${day}`);
+        } else {
+          setDueDate(String(dd).split("T")[0]);
+        }
+      } else {
+        setDueDate("");
+      }
       setOwnerId(task.ownerId ? String(task.ownerId) : "none");
       setAreaId(task.areaId ? String(task.areaId) : "none");
       setProjectId(task.projectId ? String(task.projectId) : "none");

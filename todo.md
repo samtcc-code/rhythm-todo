@@ -28,3 +28,5 @@
 - [x] Frontend: Dark mode toggle
 - [x] Frontend: Responsive mobile-friendly layout
 - [x] Vitest tests for backend procedures
+- [x] Bug fix: Drag-and-drop reordering not clearly working on Today list
+- [x] Bug fix: Redundant and incorrect date (April 2) showing on tasks in Today view

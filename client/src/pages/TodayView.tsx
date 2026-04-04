@@ -180,6 +180,7 @@ export default function TodayView() {
           users={usersQuery.data}
           defaultDoDate={today}
           emptyMessage="Your day is clear. Add tasks or start a brain dump."
+          hideDoDate
         />
       </div>
 
@@ -193,6 +194,7 @@ export default function TodayView() {
             tasks={completedTasks}
             users={usersQuery.data}
             showCreateInline={false}
+            hideDoDate
           />
         </div>
       )}

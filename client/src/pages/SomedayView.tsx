@@ -20,6 +20,7 @@ export default function SomedayView() {
         users={usersQuery.data}
         defaultDoDateSomeday={true}
         emptyMessage="No someday tasks. Things you're not sure when to do will appear here."
+        hideDoDate
       />
     </div>
   );

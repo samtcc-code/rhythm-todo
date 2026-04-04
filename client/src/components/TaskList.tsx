@@ -14,6 +14,8 @@ interface TaskListProps {
   defaultDoDate?: string | null;
   defaultDoDateSomeday?: boolean;
   emptyMessage?: string;
+  /** Hide do-date on each task item (useful when the view already implies the date) */
+  hideDoDate?: boolean;
 }
 
 export default function TaskList({
@@ -23,6 +25,7 @@ export default function TaskList({
   defaultDoDate,
   defaultDoDateSomeday,
   emptyMessage = "No tasks yet",
+  hideDoDate = false,
 }: TaskListProps) {
   const utils = trpc.useUtils();
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
@@ -30,6 +33,8 @@ export default function TaskList({
   const [newTitle, setNewTitle] = useState("");
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+  // Track whether drag was initiated from the handle
+  const handleDragRef = useRef(false);
 
   const createTask = trpc.tasks.create.useMutation({
     onSuccess: () => {
@@ -52,19 +57,32 @@ export default function TaskList({
     });
   };
 
-  const handleDragStart = (idx: number) => {
+  const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
+    if (!handleDragRef.current) {
+      // Drag was not initiated from the grip handle — cancel it
+      e.preventDefault();
+      return;
+    }
     setDraggedIdx(idx);
-  };
+    // Use a semi-transparent drag image
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = "move";
+    }
+  }, []);
 
-  const handleDragOver = (e: React.DragEvent, idx: number) => {
+  const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
     e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = "move";
+    }
     setDragOverIdx(idx);
-  };
+  }, []);
 
-  const handleDrop = (idx: number) => {
+  const handleDrop = useCallback((idx: number) => {
     if (draggedIdx === null || draggedIdx === idx) {
       setDraggedIdx(null);
       setDragOverIdx(null);
+      handleDragRef.current = false;
       return;
     }
     const newOrder = [...tasks];
@@ -73,7 +91,22 @@ export default function TaskList({
     reorderTasks.mutate({ orderedIds: newOrder.map(t => t.id) });
     setDraggedIdx(null);
     setDragOverIdx(null);
-  };
+    handleDragRef.current = false;
+  }, [draggedIdx, tasks, reorderTasks]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+    handleDragRef.current = false;
+  }, []);
+
+  // Props passed to the drag handle inside TaskItem
+  const makeDragHandleProps = useCallback(() => ({
+    onMouseDown: () => { handleDragRef.current = true; },
+    onMouseUp: () => { handleDragRef.current = false; },
+    onTouchStart: () => { handleDragRef.current = true; },
+    onTouchEnd: () => { handleDragRef.current = false; },
+  }), []);
 
   return (
     <div>
@@ -88,21 +121,22 @@ export default function TaskList({
           <div
             key={task.id}
             draggable
-            onDragStart={() => handleDragStart(idx)}
+            onDragStart={e => handleDragStart(e, idx)}
             onDragOver={e => handleDragOver(e, idx)}
             onDrop={() => handleDrop(idx)}
-            onDragEnd={() => { setDraggedIdx(null); setDragOverIdx(null); }}
-            className={`transition-all ${
-              dragOverIdx === idx && draggedIdx !== idx
-                ? "border-t-2 border-primary"
+            onDragEnd={handleDragEnd}
+            className={`transition-all rounded-lg ${
+              dragOverIdx === idx && draggedIdx !== null && draggedIdx !== idx
+                ? "ring-2 ring-primary/50 ring-offset-1"
                 : ""
-            } ${draggedIdx === idx ? "opacity-40" : ""}`}
+            } ${draggedIdx === idx ? "opacity-30 scale-[0.98]" : ""}`}
           >
             <TaskItem
               task={task}
               onClick={() => setSelectedTaskId(task.id)}
               users={users}
-              dragHandleProps={{}}
+              dragHandleProps={makeDragHandleProps()}
+              hideDoDate={hideDoDate}
             />
           </div>
         ))}
