@@ -1,0 +1,30 @@
+# Project TODO
+
+- [x] Database schema: users, areas, projects, tags, tasks, subtasks, task_tags
+- [x] Backend API: CRUD for areas
+- [x] Backend API: CRUD for projects
+- [x] Backend API: CRUD for tags
+- [x] Backend API: CRUD for tasks (with Eisenhower matrix fields, do_date, due_date, owner, notes, sort_order)
+- [x] Backend API: CRUD for subtasks
+- [x] Backend API: task reordering (drag-and-drop sort_order updates)
+- [x] Backend API: bulk move tasks to tomorrow
+- [x] Backend API: surface Do Later items for next-day re-evaluation
+- [x] Frontend: Things 3-inspired clean minimal design with dark/light theme toggle
+- [x] Frontend: DashboardLayout with sidebar navigation (Today, Someday, Areas, Projects, Tags)
+- [x] Frontend: Today view showing tasks with today's do_date
+- [x] Frontend: Someday view showing tasks marked as Someday
+- [x] Frontend: Area detail view showing tasks within an area
+- [x] Frontend: Project detail view showing tasks within a project
+- [x] Frontend: Tag filtering
+- [x] Frontend: Task creation with Eisenhower matrix (urgent/important toggles auto-categorize)
+- [x] Frontend: Task detail panel with notes, subtasks, do_date, due_date, owner, area, project, tags
+- [x] Frontend: Drag-and-drop reordering of tasks
+- [x] Frontend: Checkable done/not-done task status
+- [x] Frontend: Subtask checkboxes within a task
+- [x] Frontend: Morning brain dump workflow (capture tasks, tag, assign do_dates, move non-today off)
+- [x] Frontend: Evening sift workflow (review remaining, push incomplete to tomorrow)
+- [x] Frontend: Eisenhower Matrix view (4 quadrants: Do Now, Do Later, Delegate, Delete)
+- [x] Frontend: Task ownership assignment (me or Isma)
+- [x] Frontend: Dark mode toggle
+- [x] Frontend: Responsive mobile-friendly layout
+- [x] Vitest tests for backend procedures
