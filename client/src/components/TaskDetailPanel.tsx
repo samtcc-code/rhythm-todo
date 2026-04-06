@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,8 +61,14 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
 
+  // Track whether we've loaded from server to avoid saving on initial load
+  const loadedRef = useRef(false);
+  // Counter to trigger auto-save when toggle/select values change
+  const [saveCounter, setSaveCounter] = useState(0);
+
   useEffect(() => {
     if (task) {
+      loadedRef.current = false; // pause auto-save during load
       setTitle(task.title);
       setNotes(task.notes ?? "");
       setIsUrgent(task.isUrgent);
@@ -102,10 +108,13 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
       setAreaId(task.areaId ? String(task.areaId) : "none");
       setProjectId(task.projectId ? String(task.projectId) : "none");
       setSelectedTagIds(task.tagIds ?? []);
+      // Mark loaded after a tick so the saveCounter effect doesn't fire
+      requestAnimationFrame(() => { loadedRef.current = true; });
     }
   }, [task]);
 
-  const save = useCallback(() => {
+  // The actual save function — always reads latest state
+  const doSave = useCallback(() => {
     if (!taskId || !title.trim()) return;
     updateTask.mutate({
       id: taskId,
@@ -123,7 +132,14 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
     });
   }, [taskId, title, notes, isUrgent, isImportant, doDateType, doDate, dueDate, ownerId, areaId, projectId, selectedTagIds, updateTask]);
 
-  const handleBlur = () => save();
+  // Auto-save when toggle/select values change (triggered by saveCounter)
+  useEffect(() => {
+    if (!loadedRef.current || saveCounter === 0) return;
+    doSave();
+  }, [saveCounter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const triggerSave = () => setSaveCounter(c => c + 1);
+  const handleBlur = () => doSave();
 
   if (!taskId) return null;
 
@@ -137,13 +153,13 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
         : "text-gray-500 dark:text-gray-400";
 
   return (
-    <Sheet open={open} onOpenChange={v => { if (!v) { save(); onClose(); } }}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader className="pb-4">
+    <Sheet open={open} onOpenChange={v => { if (!v) { doSave(); onClose(); } }}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto px-8 py-6 pr-10">
+        <SheetHeader className="pb-2 pt-0 px-0">
           <SheetTitle className="sr-only">Edit Task</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-8 md:space-y-6 pb-8">
+        <div className="space-y-8 md:space-y-6 pb-8 px-0">
           {/* Title */}
           <div>
             <Input
@@ -162,14 +178,14 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
               <div className="flex items-center gap-3 md:gap-2">
                 <Switch
                   checked={isUrgent}
-                  onCheckedChange={v => { setIsUrgent(v); setTimeout(save, 50); }}
+                  onCheckedChange={v => { setIsUrgent(v); triggerSave(); }}
                 />
                 <span className="text-base md:text-sm">Urgent</span>
               </div>
               <div className="flex items-center gap-3 md:gap-2">
                 <Switch
                   checked={isImportant}
-                  onCheckedChange={v => { setIsImportant(v); setTimeout(save, 50); }}
+                  onCheckedChange={v => { setIsImportant(v); triggerSave(); }}
                 />
                 <span className="text-base md:text-sm">Important</span>
               </div>
@@ -183,7 +199,7 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
           <div className="space-y-3 md:space-y-2">
             <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Do Date</Label>
             <div className="flex items-center gap-3 md:gap-2">
-              <Select value={doDateType} onValueChange={(v: "date" | "someday" | "none") => { setDoDateType(v); setTimeout(save, 50); }}>
+              <Select value={doDateType} onValueChange={(v: "date" | "someday" | "none") => { setDoDateType(v); triggerSave(); }}>
                 <SelectTrigger className="w-44 md:w-36 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
                   <SelectValue />
                 </SelectTrigger>
@@ -220,7 +236,7 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
           {/* Owner */}
           <div className="space-y-3 md:space-y-2">
             <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Owner</Label>
-            <Select value={ownerId} onValueChange={v => { setOwnerId(v); setTimeout(save, 50); }}>
+            <Select value={ownerId} onValueChange={v => { setOwnerId(v); triggerSave(); }}>
               <SelectTrigger className="w-56 md:w-48 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
                 <SelectValue placeholder="Unassigned" />
               </SelectTrigger>
@@ -236,7 +252,7 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
           {/* Area */}
           <div className="space-y-3 md:space-y-2">
             <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Area</Label>
-            <Select value={areaId} onValueChange={v => { setAreaId(v); setTimeout(save, 50); }}>
+            <Select value={areaId} onValueChange={v => { setAreaId(v); triggerSave(); }}>
               <SelectTrigger className="w-56 md:w-48 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
                 <SelectValue placeholder="No area" />
               </SelectTrigger>
@@ -252,7 +268,7 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
           {/* Project */}
           <div className="space-y-3 md:space-y-2">
             <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Project</Label>
-            <Select value={projectId} onValueChange={v => { setProjectId(v); setTimeout(save, 50); }}>
+            <Select value={projectId} onValueChange={v => { setProjectId(v); triggerSave(); }}>
               <SelectTrigger className="w-56 md:w-48 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
                 <SelectValue placeholder="No project" />
               </SelectTrigger>
@@ -284,7 +300,7 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
                         ? selectedTagIds.filter(id => id !== tag.id)
                         : [...selectedTagIds, tag.id];
                       setSelectedTagIds(next);
-                      setTimeout(save, 50);
+                      triggerSave();
                     }}
                   >
                     <div

@@ -1,7 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import TaskList from "@/components/TaskList";
 import { useParams } from "wouter";
-import { FolderOpen } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 
 export default function ProjectView() {
   const params = useParams<{ id: string }>();
@@ -19,7 +19,7 @@ export default function ProjectView() {
     <div className="space-y-6">
       <div>
         <div className="flex items-center gap-2">
-          <FolderOpen className="h-5 w-5 text-muted-foreground" />
+          <ClipboardList className="h-5 w-5 text-muted-foreground" />
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             {project?.name ?? "Project"}
           </h1>
@@ -38,6 +38,7 @@ export default function ProjectView() {
         <TaskList
           tasks={incompleteTasks}
           users={usersQuery.data}
+          defaultProjectId={projectId}
           emptyMessage="No tasks in this project yet."
         />
       </div>

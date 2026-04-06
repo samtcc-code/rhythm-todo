@@ -5,7 +5,6 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import DashboardLayout from "./components/DashboardLayout";
-import Home from "./pages/Home";
 import TodayView from "./pages/TodayView";
 import SomedayView from "./pages/SomedayView";
 import MatrixView from "./pages/MatrixView";
@@ -13,8 +12,9 @@ import AreaView from "./pages/AreaView";
 import ProjectView from "./pages/ProjectView";
 import TagView from "./pages/TagView";
 import AllTasksView from "./pages/AllTasksView";
+import { useIsMobile } from "./hooks/useMobile";
 
-function Router() {
+function DesktopRouter() {
   return (
     <DashboardLayout>
       <Switch>
@@ -31,6 +31,17 @@ function Router() {
       </Switch>
     </DashboardLayout>
   );
+}
+
+function MobileRouter() {
+  // On mobile, only show the TodayView (Brain Dump + Sift focused)
+  // All routes redirect to the same mobile experience
+  return <TodayView />;
+}
+
+function Router() {
+  const isMobile = useIsMobile();
+  return isMobile ? <MobileRouter /> : <DesktopRouter />;
 }
 
 function App() {

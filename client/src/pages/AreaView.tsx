@@ -38,6 +38,7 @@ export default function AreaView() {
         <TaskList
           tasks={incompleteTasks}
           users={usersQuery.data}
+          defaultAreaId={areaId}
           emptyMessage="No tasks in this area yet."
         />
       </div>

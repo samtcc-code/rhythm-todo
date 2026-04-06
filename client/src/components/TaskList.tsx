@@ -13,6 +13,9 @@ interface TaskListProps {
   showCreateInline?: boolean;
   defaultDoDate?: string | null;
   defaultDoDateSomeday?: boolean;
+  defaultAreaId?: number;
+  defaultProjectId?: number;
+  defaultTagIds?: number[];
   emptyMessage?: string;
   hideDoDate?: boolean;
 }
@@ -23,6 +26,9 @@ export default function TaskList({
   showCreateInline = true,
   defaultDoDate,
   defaultDoDateSomeday,
+  defaultAreaId,
+  defaultProjectId,
+  defaultTagIds,
   emptyMessage = "No tasks yet",
   hideDoDate = false,
 }: TaskListProps) {
@@ -36,14 +42,14 @@ export default function TaskList({
 
   const createTask = trpc.tasks.create.useMutation({
     onSuccess: () => {
-      utils.tasks.list.invalidate();
+      utils.tasks.invalidate();
       setNewTitle("");
       setShowCreate(false);
     },
   });
 
   const reorderTasks = trpc.tasks.reorder.useMutation({
-    onSuccess: () => { utils.tasks.list.invalidate(); },
+    onSuccess: () => { utils.tasks.invalidate(); },
   });
 
   const handleCreate = () => {
@@ -52,6 +58,9 @@ export default function TaskList({
       title: newTitle.trim(),
       doDate: defaultDoDate ?? null,
       doDateSomeday: defaultDoDateSomeday ?? false,
+      areaId: defaultAreaId ?? null,
+      projectId: defaultProjectId ?? null,
+      tagIds: defaultTagIds,
     });
   };
 
@@ -111,7 +120,6 @@ export default function TaskList({
         </div>
       )}
 
-      {/* Mobile: add spacing between items for easier targeting */}
       <div className="space-y-1 md:space-y-0.5">
         {tasks.map((task, idx) => (
           <div

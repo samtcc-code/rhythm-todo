@@ -34,3 +34,8 @@
 - [x] UI: Auto-collapse sidebar on mobile when navigating to an Area or Project
 - [x] UI: Increase all touch targets, text sizes, padding on mobile for easier thumb interaction
 - [x] Bug fix: Mobile touch targets still too small — overcorrect with much larger sizes everywhere
+- [x] Bug fix: Area/project/tag selections not saving when editing task details
+- [x] Bug fix: Tasks created within a project or area view disappear (not associated with that project/area)
+- [x] Bug fix: Task detail panel missing right-side padding on desktop
+- [x] Feature: Redesign mobile as dedicated Brain Dump + Evening Sift interface (no rearranging, no detailed views, fat-finger optimized)
+- [x] Remove LLM-driven features from mobile (keep it simple, no API credits)

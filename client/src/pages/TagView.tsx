@@ -43,6 +43,7 @@ export default function TagView() {
         <TaskList
           tasks={incompleteTasks}
           users={usersQuery.data}
+          defaultTagIds={[tagId]}
           emptyMessage="No tasks with this tag yet."
         />
       </div>
