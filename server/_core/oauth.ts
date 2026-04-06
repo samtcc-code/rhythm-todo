@@ -32,6 +32,7 @@ export function registerOAuthRoutes(app: Express) {
       const ALLOWED_EMAILS = [
         "sam@thecontinuity.co",
         "isma@thecontinuity.co",
+        "sierra@thecontinuity.co",
       ];
       const userEmail = (userInfo.email || "").toLowerCase().trim();
       if (!ALLOWED_EMAILS.includes(userEmail)) {

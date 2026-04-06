@@ -42,3 +42,4 @@
 - [x] Auth: Restrict login to only sam@ and isma@ email addresses (whitelist)
 - [x] UI: Show area and project on task items in the Today view (desktop)
 - [x] UI: Add area/project filter on the Today view
+- [x] Auth: Add sierra@ to login whitelist (view-only, not an owner option)
