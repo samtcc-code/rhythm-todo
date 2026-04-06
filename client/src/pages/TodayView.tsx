@@ -10,7 +10,10 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { Sunrise, Sunset, ArrowRight, Plus, X, Check, ChevronRight, Moon, Sun } from "lucide-react";
+import { Sunrise, Sunset, ArrowRight, Plus, X, Check, ChevronRight, Moon, Sun, Filter } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -483,7 +486,12 @@ function DesktopTodayView() {
 
   const todayTasks = trpc.tasks.list.useQuery({ doDate: today });
   const usersQuery = trpc.users.list.useQuery();
+  const areasQuery = trpc.areas.list.useQuery();
+  const projectsQuery = trpc.projects.list.useQuery();
   const utils = trpc.useUtils();
+
+  const [filterAreaId, setFilterAreaId] = useState<number | null>(null);
+  const [filterProjectId, setFilterProjectId] = useState<number | null>(null);
 
   const bulkMove = trpc.tasks.bulkMove.useMutation({
     onSuccess: () => { utils.tasks.list.invalidate(); },
@@ -499,8 +507,23 @@ function DesktopTodayView() {
   const [showEveningSift, setShowEveningSift] = useState(false);
   const [siftSelected, setSiftSelected] = useState<Set<number>>(new Set());
 
-  const incompleteTasks = todayTasks.data?.filter(t => !t.isDone) ?? [];
-  const completedTasks = todayTasks.data?.filter(t => t.isDone) ?? [];
+  const allIncomplete = todayTasks.data?.filter(t => !t.isDone) ?? [];
+  const allCompleted = todayTasks.data?.filter(t => t.isDone) ?? [];
+
+  // Apply area/project filters
+  const incompleteTasks = allIncomplete.filter(t => {
+    if (filterAreaId !== null && t.areaId !== filterAreaId) return false;
+    if (filterProjectId !== null && t.projectId !== filterProjectId) return false;
+    return true;
+  });
+  const completedTasks = allCompleted.filter(t => {
+    if (filterAreaId !== null && t.areaId !== filterAreaId) return false;
+    if (filterProjectId !== null && t.projectId !== filterProjectId) return false;
+    return true;
+  });
+
+  const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
+  const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
 
   const handleOpenBrainDump = () => {
     setDumpItems([]);
@@ -577,11 +600,58 @@ function DesktopTodayView() {
             <Sunrise className="h-4 w-4" />
             Brain Dump
           </Button>
-          <Button variant="outline" onClick={handleEveningSift} className="gap-1.5 h-9 px-3 text-sm" disabled={incompleteTasks.length === 0}>
+          <Button variant="outline" onClick={handleEveningSift} className="gap-1.5 h-9 px-3 text-sm" disabled={allIncomplete.length === 0}>
             <Sunset className="h-4 w-4" />
             Evening Sift
           </Button>
         </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Filter className="h-3.5 w-3.5" />
+          Filter:
+        </div>
+        <Select
+          value={filterAreaId !== null ? String(filterAreaId) : "all"}
+          onValueChange={v => setFilterAreaId(v === "all" ? null : Number(v))}
+        >
+          <SelectTrigger className="h-8 w-[160px] text-xs">
+            <SelectValue placeholder="All Areas" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Areas</SelectItem>
+            {areasData.map(a => (
+              <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={filterProjectId !== null ? String(filterProjectId) : "all"}
+          onValueChange={v => setFilterProjectId(v === "all" ? null : Number(v))}
+        >
+          <SelectTrigger className="h-8 w-[160px] text-xs">
+            <SelectValue placeholder="All Projects" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Projects</SelectItem>
+            {projectsData.map(p => (
+              <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(filterAreaId !== null || filterProjectId !== null) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-xs text-muted-foreground"
+            onClick={() => { setFilterAreaId(null); setFilterProjectId(null); }}
+          >
+            <X className="h-3 w-3 mr-1" />
+            Clear
+          </Button>
+        )}
       </div>
 
       {/* Active tasks */}
@@ -594,6 +664,8 @@ function DesktopTodayView() {
         <TaskList
           tasks={incompleteTasks}
           users={usersQuery.data}
+          areas={areasData}
+          projects={projectsData}
           defaultDoDate={today}
           emptyMessage="Your day is clear. Add tasks or start a brain dump."
           hideDoDate
@@ -609,6 +681,8 @@ function DesktopTodayView() {
           <TaskList
             tasks={completedTasks}
             users={usersQuery.data}
+            areas={areasData}
+            projects={projectsData}
             showCreateInline={false}
             hideDoDate
           />

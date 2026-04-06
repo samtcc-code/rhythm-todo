@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import TaskItem from "@/components/TaskItem";
 import TaskDetailPanel from "@/components/TaskDetailPanel";
@@ -38,7 +38,12 @@ const quadrants = [
 export default function MatrixView() {
   const allTasks = trpc.tasks.list.useQuery({ isDone: false });
   const usersQuery = trpc.users.list.useQuery();
+  const areasQuery = trpc.areas.list.useQuery();
+  const projectsQuery = trpc.projects.list.useQuery();
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+
+  const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
+  const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
 
   const tasksByQuadrant = (key: string) =>
     allTasks.data?.filter(t => t.quadrant === key) ?? [];
@@ -68,6 +73,8 @@ export default function MatrixView() {
                     task={task}
                     onClick={() => setSelectedTaskId(task.id)}
                     users={usersQuery.data}
+                    areas={areasData}
+                    projects={projectsData}
                   />
                 ))}
                 {tasks.length === 0 && (

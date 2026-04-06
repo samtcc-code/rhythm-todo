@@ -1,7 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, GripVertical, User } from "lucide-react";
+import { Calendar, Clock, GripVertical, User, FolderOpen, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Task } from "../../../drizzle/schema";
 
@@ -9,6 +9,8 @@ interface TaskItemProps {
   task: Task;
   onClick: () => void;
   users?: { id: number; name: string | null }[];
+  areas?: { id: number; name: string }[];
+  projects?: { id: number; name: string }[];
   dragHandleProps?: Record<string, unknown>;
   hideDoDate?: boolean;
 }
@@ -55,13 +57,15 @@ function formatDueDate(d: string | Date | null): string {
   return `${months[date.getUTCMonth()]} ${date.getUTCDate()}`;
 }
 
-export default function TaskItem({ task, onClick, users, dragHandleProps, hideDoDate = false }: TaskItemProps) {
+export default function TaskItem({ task, onClick, users, areas, projects, dragHandleProps, hideDoDate = false }: TaskItemProps) {
   const utils = trpc.useUtils();
   const toggleDone = trpc.tasks.update.useMutation({
     onSuccess: () => { utils.tasks.list.invalidate(); },
   });
 
   const ownerName = users?.find(u => u.id === task.ownerId)?.name;
+  const areaName = areas?.find(a => a.id === task.areaId)?.name;
+  const projectName = projects?.find(p => p.id === task.projectId)?.name;
 
   const doDateStr = hideDoDate
     ? null
@@ -74,13 +78,12 @@ export default function TaskItem({ task, onClick, users, dragHandleProps, hideDo
   return (
     <div
       className={cn(
-        // Mobile: very tall rows with generous padding. Desktop: compact.
         "group flex items-center gap-4 md:gap-2 px-4 md:px-3 py-5 md:py-2.5 rounded-xl md:rounded-lg transition-colors hover:bg-accent/50 cursor-pointer border border-transparent active:bg-accent/70",
         task.isDone && "opacity-50"
       )}
       onClick={onClick}
     >
-      {/* Drag handle — very large on mobile */}
+      {/* Drag handle */}
       {dragHandleProps && (
         <div
           {...dragHandleProps}
@@ -91,7 +94,7 @@ export default function TaskItem({ task, onClick, users, dragHandleProps, hideDo
         </div>
       )}
 
-      {/* Checkbox — 28px on mobile, 18px on desktop */}
+      {/* Checkbox */}
       <div
         className="shrink-0 flex items-center justify-center w-12 h-12 md:w-auto md:h-auto -m-1 md:m-0"
         onClick={e => {
@@ -104,7 +107,6 @@ export default function TaskItem({ task, onClick, users, dragHandleProps, hideDo
 
       <div className="flex-1 min-w-0">
         <p className={cn(
-          // Mobile: 18px text. Desktop: 14px.
           "text-lg md:text-sm leading-normal md:leading-snug text-foreground",
           task.isDone && "line-through text-muted-foreground"
         )}>
@@ -115,6 +117,20 @@ export default function TaskItem({ task, onClick, users, dragHandleProps, hideDo
           <Badge variant="outline" className={cn("text-sm md:text-[10px] px-2.5 md:px-1.5 py-1 md:py-0 h-7 md:h-5 font-medium", quadrantColor(task.quadrant))}>
             {quadrantLabel(task.quadrant)}
           </Badge>
+
+          {areaName && (
+            <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
+              <FolderOpen className="h-4 w-4 md:h-3 md:w-3" />
+              {areaName}
+            </span>
+          )}
+
+          {projectName && (
+            <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
+              <ClipboardList className="h-4 w-4 md:h-3 md:w-3" />
+              {projectName}
+            </span>
+          )}
 
           {doDateStr && (
             <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">

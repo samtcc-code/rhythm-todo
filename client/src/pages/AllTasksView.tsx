@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import TaskList from "@/components/TaskList";
 import { Layers } from "lucide-react";
@@ -5,9 +6,14 @@ import { Layers } from "lucide-react";
 export default function AllTasksView() {
   const tasksQuery = trpc.tasks.list.useQuery({});
   const usersQuery = trpc.users.list.useQuery();
+  const areasQuery = trpc.areas.list.useQuery();
+  const projectsQuery = trpc.projects.list.useQuery();
 
   const incompleteTasks = tasksQuery.data?.filter(t => !t.isDone) ?? [];
   const completedTasks = tasksQuery.data?.filter(t => t.isDone) ?? [];
+
+  const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
+  const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
 
   return (
     <div className="space-y-6">
@@ -27,6 +33,8 @@ export default function AllTasksView() {
         <TaskList
           tasks={incompleteTasks}
           users={usersQuery.data}
+          areas={areasData}
+          projects={projectsData}
           emptyMessage="No tasks yet. Create your first task to get started."
         />
       </div>
@@ -39,6 +47,8 @@ export default function AllTasksView() {
           <TaskList
             tasks={completedTasks}
             users={usersQuery.data}
+            areas={areasData}
+            projects={projectsData}
             showCreateInline={false}
           />
         </div>

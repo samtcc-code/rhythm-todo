@@ -39,3 +39,6 @@
 - [x] Bug fix: Task detail panel missing right-side padding on desktop
 - [x] Feature: Redesign mobile as dedicated Brain Dump + Evening Sift interface (no rearranging, no detailed views, fat-finger optimized)
 - [x] Remove LLM-driven features from mobile (keep it simple, no API credits)
+- [x] Auth: Restrict login to only sam@ and isma@ email addresses (whitelist)
+- [x] UI: Show area and project on task items in the Today view (desktop)
+- [x] UI: Add area/project filter on the Today view

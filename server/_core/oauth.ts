@@ -28,6 +28,17 @@ export function registerOAuthRoutes(app: Express) {
         return;
       }
 
+      // Email whitelist — only allow specific users
+      const ALLOWED_EMAILS = [
+        "sam@thecontinuity.co",
+        "isma@thecontinuity.co",
+      ];
+      const userEmail = (userInfo.email || "").toLowerCase().trim();
+      if (!ALLOWED_EMAILS.includes(userEmail)) {
+        res.status(403).json({ error: "Access denied. Only authorized users can sign in." });
+        return;
+      }
+
       await db.upsertUser({
         openId: userInfo.openId,
         name: userInfo.name || null,

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import TaskItem from "./TaskItem";
 import TaskDetailPanel from "./TaskDetailPanel";
@@ -10,6 +10,8 @@ import type { Task } from "../../../drizzle/schema";
 interface TaskListProps {
   tasks: Task[];
   users?: { id: number; name: string | null }[];
+  areas?: { id: number; name: string }[];
+  projects?: { id: number; name: string }[];
   showCreateInline?: boolean;
   defaultDoDate?: string | null;
   defaultDoDateSomeday?: boolean;
@@ -23,6 +25,8 @@ interface TaskListProps {
 export default function TaskList({
   tasks,
   users,
+  areas,
+  projects,
   showCreateInline = true,
   defaultDoDate,
   defaultDoDateSomeday,
@@ -139,6 +143,8 @@ export default function TaskList({
               task={task}
               onClick={() => setSelectedTaskId(task.id)}
               users={users}
+              areas={areas}
+              projects={projects}
               dragHandleProps={makeDragHandleProps()}
               hideDoDate={hideDoDate}
             />

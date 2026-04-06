@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import TaskList from "@/components/TaskList";
 import { useParams } from "wouter";
@@ -8,12 +9,17 @@ export default function TagView() {
   const tagId = parseInt(params.id ?? "0");
 
   const tagsQuery = trpc.tags.list.useQuery();
+  const areasQuery = trpc.areas.list.useQuery();
+  const projectsQuery = trpc.projects.list.useQuery();
   const tasksQuery = trpc.tasks.list.useQuery({ tagId });
   const usersQuery = trpc.users.list.useQuery();
 
   const tag = tagsQuery.data?.find(t => t.id === tagId);
   const incompleteTasks = tasksQuery.data?.filter(t => !t.isDone) ?? [];
   const completedTasks = tasksQuery.data?.filter(t => t.isDone) ?? [];
+
+  const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
+  const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
 
   return (
     <div className="space-y-6">
@@ -43,6 +49,8 @@ export default function TagView() {
         <TaskList
           tasks={incompleteTasks}
           users={usersQuery.data}
+          areas={areasData}
+          projects={projectsData}
           defaultTagIds={[tagId]}
           emptyMessage="No tasks with this tag yet."
         />
@@ -56,6 +64,8 @@ export default function TagView() {
           <TaskList
             tasks={completedTasks}
             users={usersQuery.data}
+            areas={areasData}
+            projects={projectsData}
             showCreateInline={false}
           />
         </div>
