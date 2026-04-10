@@ -1,4 +1,3 @@
-import { trpc } from "@/lib/trpc";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, GripVertical, User, FolderOpen, ClipboardList } from "lucide-react";
@@ -8,6 +7,8 @@ import type { Task } from "../../../drizzle/schema";
 interface TaskItemProps {
   task: Task;
   onClick: () => void;
+  onToggleComplete?: (task: Task) => void;
+  onDelete?: (task: Task) => void;
   users?: { id: number; name: string | null }[];
   areas?: { id: number; name: string }[];
   projects?: { id: number; name: string }[];
@@ -57,12 +58,17 @@ function formatDueDate(d: string | Date | null): string {
   return `${months[date.getUTCMonth()]} ${date.getUTCDate()}`;
 }
 
-export default function TaskItem({ task, onClick, users, areas, projects, dragHandleProps, hideDoDate = false }: TaskItemProps) {
-  const utils = trpc.useUtils();
-  const toggleDone = trpc.tasks.update.useMutation({
-    onSuccess: () => { utils.tasks.list.invalidate(); },
-  });
-
+export default function TaskItem({
+  task,
+  onClick,
+  onToggleComplete,
+  onDelete,
+  users,
+  areas,
+  projects,
+  dragHandleProps,
+  hideDoDate = false,
+}: TaskItemProps) {
   const ownerName = users?.find(u => u.id === task.ownerId)?.name;
   const areaName = areas?.find(a => a.id === task.areaId)?.name;
   const projectName = projects?.find(p => p.id === task.projectId)?.name;
@@ -99,7 +105,7 @@ export default function TaskItem({ task, onClick, users, areas, projects, dragHa
         className="shrink-0 flex items-center justify-center w-12 h-12 md:w-auto md:h-auto -m-1 md:m-0"
         onClick={e => {
           e.stopPropagation();
-          toggleDone.mutate({ id: task.id, isDone: !task.isDone });
+          onToggleComplete?.(task);
         }}
       >
         <Checkbox checked={task.isDone} className="h-7 w-7 md:h-[18px] md:w-[18px] rounded-full" />
