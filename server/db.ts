@@ -1,5 +1,5 @@
 import { eq, and, sql, isNull, inArray, asc, desc } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle } from "drizzle-orm/node-postgres";
 import {
   InsertUser, users,
   areas, InsertArea,
@@ -50,7 +50,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     else if (user.openId === ENV.ownerOpenId) { values.role = 'admin'; updateSet.role = 'admin'; }
     if (!values.lastSignedIn) values.lastSignedIn = new Date();
     if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
-    await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
+    await db.insert(users).values(values).onConflictDoUpdate({ target: users.openId, set: updateSet });
   } catch (error) { console.error("[Database] Failed to upsert user:", error); throw error; }
 }
 
@@ -75,8 +75,8 @@ export async function listAreas() {
 
 export async function createArea(data: { name: string; sortOrder?: number }) {
   const db = await getDb();
-  const result = await db.insert(areas).values({ name: data.name, sortOrder: data.sortOrder ?? 0 });
-  return { id: result[0].insertId };
+  const result = await db.insert(areas).values({ name: data.name, sortOrder: data.sortOrder ?? 0 }).returning({ id: areas.id });
+  return { id: result[0].id };
 }
 
 export async function updateArea(id: number, data: { name?: string; sortOrder?: number }) {
@@ -89,9 +89,7 @@ export async function updateArea(id: number, data: { name?: string; sortOrder?: 
 
 export async function deleteArea(id: number) {
   const db = await getDb();
-  // Unlink tasks from this area
   await db.update(tasks).set({ areaId: null }).where(eq(tasks.areaId, id));
-  // Unlink projects from this area
   await db.update(projects).set({ areaId: null }).where(eq(projects.areaId, id));
   await db.delete(areas).where(eq(areas.id, id));
 }
@@ -108,8 +106,8 @@ export async function listProjects(areaId?: number) {
 
 export async function createProject(data: { name: string; areaId?: number; sortOrder?: number }) {
   const db = await getDb();
-  const result = await db.insert(projects).values({ name: data.name, areaId: data.areaId ?? null, sortOrder: data.sortOrder ?? 0 });
-  return { id: result[0].insertId };
+  const result = await db.insert(projects).values({ name: data.name, areaId: data.areaId ?? null, sortOrder: data.sortOrder ?? 0 }).returning({ id: projects.id });
+  return { id: result[0].id };
 }
 
 export async function updateProject(id: number, data: { name?: string; areaId?: number | null; sortOrder?: number }) {
@@ -136,8 +134,8 @@ export async function listTags() {
 
 export async function createTag(data: { name: string; color?: string }) {
   const db = await getDb();
-  const result = await db.insert(tags).values({ name: data.name, color: data.color ?? "#6366f1" });
-  return { id: result[0].insertId };
+  const result = await db.insert(tags).values({ name: data.name, color: data.color ?? "#6366f1" }).returning({ id: tags.id });
+  return { id: result[0].id };
 }
 
 export async function updateTag(id: number, data: { name?: string; color?: string }) {
@@ -164,7 +162,7 @@ function computeQuadrant(isUrgent: boolean, isImportant: boolean): "doNow" | "do
 }
 
 export async function listTasks(filters?: {
-  doDate?: string; // "YYYY-MM-DD" or "someday" or "all"
+  doDate?: string;
   isDone?: boolean;
   quadrant?: string;
   areaId?: number;
@@ -173,8 +171,6 @@ export async function listTasks(filters?: {
   tagId?: number;
 }) {
   const db = await getDb();
-
-  // Build conditions
   const conditions = [];
 
   if (filters?.doDate === "someday") {
@@ -184,31 +180,15 @@ export async function listTasks(filters?: {
     conditions.push(eq(tasks.doDateSomeday, false));
   }
 
-  if (filters?.isDone !== undefined) {
-    conditions.push(eq(tasks.isDone, filters.isDone));
-  }
-
-  if (filters?.quadrant) {
-    conditions.push(eq(tasks.quadrant, filters.quadrant as any));
-  }
-
-  if (filters?.areaId !== undefined) {
-    conditions.push(eq(tasks.areaId, filters.areaId));
-  }
-
-  if (filters?.projectId !== undefined) {
-    conditions.push(eq(tasks.projectId, filters.projectId));
-  }
-
-  if (filters?.ownerId !== undefined) {
-    conditions.push(eq(tasks.ownerId, filters.ownerId));
-  }
+  if (filters?.isDone !== undefined) conditions.push(eq(tasks.isDone, filters.isDone));
+  if (filters?.quadrant) conditions.push(eq(tasks.quadrant, filters.quadrant as any));
+  if (filters?.areaId !== undefined) conditions.push(eq(tasks.areaId, filters.areaId));
+  if (filters?.projectId !== undefined) conditions.push(eq(tasks.projectId, filters.projectId));
+  if (filters?.ownerId !== undefined) conditions.push(eq(tasks.ownerId, filters.ownerId));
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
-
   const taskRows = await db.select().from(tasks).where(where).orderBy(asc(tasks.sortOrder), asc(tasks.id));
 
-  // If filtering by tag, do a subquery
   if (filters?.tagId !== undefined) {
     const taggedTaskIds = await db.select({ taskId: taskTags.taskId }).from(taskTags).where(eq(taskTags.tagId, filters.tagId));
     const idSet = new Set(taggedTaskIds.map(r => r.taskId));
@@ -256,11 +236,10 @@ export async function createTask(data: {
     areaId: data.areaId ?? null,
     projectId: data.projectId ?? null,
     sortOrder: data.sortOrder ?? 0,
-  });
+  }).returning({ id: tasks.id });
 
-  const taskId = result[0].insertId;
+  const taskId = result[0].id;
 
-  // Attach tags
   if (data.tagIds && data.tagIds.length > 0) {
     await db.insert(taskTags).values(data.tagIds.map(tagId => ({ taskId, tagId })));
   }
@@ -297,7 +276,6 @@ export async function updateTask(id: number, data: {
   if (data.projectId !== undefined) set.projectId = data.projectId;
   if (data.sortOrder !== undefined) set.sortOrder = data.sortOrder;
 
-  // Recompute quadrant if urgency/importance changed
   if (data.isUrgent !== undefined || data.isImportant !== undefined) {
     const current = await getTask(id);
     if (current) {
@@ -313,7 +291,6 @@ export async function updateTask(id: number, data: {
     await db.update(tasks).set(set).where(eq(tasks.id, id));
   }
 
-  // Update tags if provided
   if (data.tagIds !== undefined) {
     await db.delete(taskTags).where(eq(taskTags.taskId, id));
     if (data.tagIds.length > 0) {
@@ -355,8 +332,8 @@ export async function listSubtasks(taskId: number) {
 
 export async function createSubtask(data: { taskId: number; title: string; sortOrder?: number }) {
   const db = await getDb();
-  const result = await db.insert(subtasks).values({ taskId: data.taskId, title: data.title, sortOrder: data.sortOrder ?? 0 });
-  return { id: result[0].insertId };
+  const result = await db.insert(subtasks).values({ taskId: data.taskId, title: data.title, sortOrder: data.sortOrder ?? 0 }).returning({ id: subtasks.id });
+  return { id: result[0].id };
 }
 
 export async function updateSubtask(id: number, data: { title?: string; isDone?: boolean; sortOrder?: number }) {
