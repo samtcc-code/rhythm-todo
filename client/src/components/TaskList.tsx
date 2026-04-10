@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import type { Task } from "../../../drizzle/schema";
+import { useUndoToast } from "@/hooks/useUndoToast";
 
 interface TaskListProps {
   tasks: Task[];
@@ -37,6 +38,7 @@ export default function TaskList({
   hideDoDate = false,
 }: TaskListProps) {
   const utils = trpc.useUtils();
+  const { showUndo } = useUndoToast();
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -52,9 +54,47 @@ export default function TaskList({
     },
   });
 
+  const updateTask = trpc.tasks.update.useMutation({
+    onSuccess: () => { utils.tasks.invalidate(); },
+  });
+
+  const deleteTask = trpc.tasks.delete.useMutation({
+    onSuccess: () => { utils.tasks.invalidate(); },
+  });
+
   const reorderTasks = trpc.tasks.reorder.useMutation({
     onSuccess: () => { utils.tasks.invalidate(); },
   });
+
+  const handleToggleComplete = useCallback((task: Task) => {
+    const nowDone = !task.isDone;
+    updateTask.mutate({ id: task.id, isDone: nowDone });
+    if (nowDone) {
+      showUndo({
+        message: `"${task.title}" completed`,
+        onUndo: () => updateTask.mutate({ id: task.id, isDone: false }),
+      });
+    }
+  }, [updateTask, showUndo]);
+
+  const handleDelete = useCallback((task: Task) => {
+    const snapshot = { ...task };
+    deleteTask.mutate({ id: task.id });
+    showUndo({
+      message: `"${task.title}" deleted`,
+      onUndo: () => {
+        createTask.mutate({
+          title: snapshot.title,
+          isUrgent: snapshot.isUrgent,
+          isImportant: snapshot.isImportant,
+          doDate: snapshot.doDate ?? null,
+          doDateSomeday: snapshot.doDateSomeday ?? false,
+          areaId: snapshot.areaId ?? null,
+          projectId: snapshot.projectId ?? null,
+        });
+      },
+    });
+  }, [deleteTask, createTask, showUndo]);
 
   const handleCreate = () => {
     if (!newTitle.trim()) return;
@@ -142,6 +182,8 @@ export default function TaskList({
             <TaskItem
               task={task}
               onClick={() => setSelectedTaskId(task.id)}
+              onToggleComplete={handleToggleComplete}
+              onDelete={handleDelete}
               users={users}
               areas={areas}
               projects={projects}
