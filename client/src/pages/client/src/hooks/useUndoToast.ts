@@ -11,7 +11,6 @@ export function useUndoToast() {
   const toastIdRef = useRef<string | number | null>(null);
 
   const showUndo = useCallback(({ message, onUndo, duration = 5000 }: UndoToastOptions) => {
-    // Dismiss any existing undo toast first
     if (toastIdRef.current !== null) {
       toast.dismiss(toastIdRef.current);
     }
@@ -28,12 +27,8 @@ export function useUndoToast() {
           }
         },
       },
-      onDismiss: () => {
-        toastIdRef.current = null;
-      },
-      onAutoClose: () => {
-        toastIdRef.current = null;
-      },
+      onDismiss: () => { toastIdRef.current = null; },
+      onAutoClose: () => { toastIdRef.current = null; },
     });
   }, []);
 
