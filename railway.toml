@@ -1,5 +1,14 @@
 [build]
-buildCommand = "pnpm install --no-frozen-lockfile && pnpm run build"
+builder = "NIXPACKS"
+
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["nodejs", "pnpm"]
+
+[build.nixpacksPlan.phases.install]
+cmds = ["pnpm install --no-frozen-lockfile"]
+
+[build.nixpacksPlan.phases.build]
+cmds = ["pnpm run build"]
 
 [deploy]
 startCommand = "pnpm run start"
