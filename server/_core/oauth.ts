@@ -2,64 +2,61 @@ import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
-import { sdk } from "./sdk";
+import { SignJWT } from "jose";
 
-function getQueryParam(req: Request, key: string): string | undefined {
-  const value = req.query[key];
-  return typeof value === "string" ? value : undefined;
+const USERS = [
+  {
+    openId: "sam",
+    name: "Sam",
+    email: "sam@thecontinuity.co",
+    password: process.env.SAM_PASSWORD ?? "sam123",
+  },
+  {
+    openId: "team",
+    name: "Team",
+    email: "team@thecontinuity.co",
+    password: process.env.TEAM_PASSWORD ?? "team123",
+  },
+];
+
+async function createSessionToken(openId: string, name: string): Promise<string> {
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "dev-secret-change-me");
+  return new SignJWT({ openId, name })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("1y")
+    .sign(secret);
 }
 
 export function registerOAuthRoutes(app: Express) {
-  app.get("/api/oauth/callback", async (req: Request, res: Response) => {
-    const code = getQueryParam(req, "code");
-    const state = getQueryParam(req, "state");
-
-    if (!code || !state) {
-      res.status(400).json({ error: "code and state are required" });
+  app.post("/api/auth/login", async (req: Request, res: Response) => {
+    const { password } = req.body;
+    if (!password) {
+      res.status(400).json({ error: "Password required" });
       return;
     }
 
-    try {
-      const tokenResponse = await sdk.exchangeCodeForToken(code, state);
-      const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
-
-      if (!userInfo.openId) {
-        res.status(400).json({ error: "openId missing from user info" });
-        return;
-      }
-
-      // Email whitelist — only allow specific users
-      const ALLOWED_EMAILS = [
-        "sam@thecontinuity.co",
-        "isma@thecontinuity.co",
-        "sierra@thecontinuity.co",
-      ];
-      const userEmail = (userInfo.email || "").toLowerCase().trim();
-      if (!ALLOWED_EMAILS.includes(userEmail)) {
-        res.status(403).json({ error: "Access denied. Only authorized users can sign in." });
-        return;
-      }
-
-      await db.upsertUser({
-        openId: userInfo.openId,
-        name: userInfo.name || null,
-        email: userInfo.email ?? null,
-        loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-        lastSignedIn: new Date(),
-      });
-
-      const sessionToken = await sdk.createSessionToken(userInfo.openId, {
-        name: userInfo.name || "",
-        expiresInMs: ONE_YEAR_MS,
-      });
-
-      const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-
-      res.redirect(302, "/");
-    } catch (error) {
-      console.error("[OAuth] Callback failed", error);
-      res.status(500).json({ error: "OAuth callback failed" });
+    const user = USERS.find(u => u.password === password);
+    if (!user) {
+      res.status(401).json({ error: "Invalid password" });
+      return;
     }
+
+    await db.upsertUser({
+      openId: user.openId,
+      name: user.name,
+      email: user.email,
+      loginMethod: "password",
+      lastSignedIn: new Date(),
+    });
+
+    const token = await createSessionToken(user.openId, user.name);
+    const cookieOptions = getSessionCookieOptions(req);
+    res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+    res.json({ ok: true });
+  });
+
+  app.post("/api/auth/logout", (req: Request, res: Response) => {
+    res.clearCookie(COOKIE_NAME);
+    res.json({ ok: true });
   });
 }
