@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
+import LoginPage from "@/pages/LoginPage";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -14,6 +15,7 @@ import ProjectView from "./pages/ProjectView";
 import TagView from "./pages/TagView";
 import AllTasksView from "./pages/AllTasksView";
 import { useIsMobile } from "./hooks/useMobile";
+import { useAuth } from "./_core/hooks/useAuth";
 
 function DesktopRouter() {
   return (
@@ -41,6 +43,11 @@ function MobileRouter() {
 
 function Router() {
   const isMobile = useIsMobile();
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+  if (!user) return <LoginPage />;
+
   return isMobile ? <MobileRouter /> : <DesktopRouter />;
 }
 
