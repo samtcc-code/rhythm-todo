@@ -14,8 +14,8 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuButton,
   SidebarProvider,
   SidebarTrigger,
   SidebarGroup,
@@ -28,7 +28,7 @@ import { useIsMobile } from "@/hooks/useMobile";
 import { useTheme } from "@/contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import {
-  Sun, Moon, Calendar, Inbox, Grid3X3, LogOut, PanelLeft,
+  Sun, Moon, Calendar, Sunrise, Inbox, Grid3X3, LogOut, PanelLeft,
   FolderOpen, ClipboardList, Tag, Plus, MoreHorizontal, Layers, CheckSquare,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -114,12 +114,10 @@ function DashboardLayoutContent({
   const isMobile = useIsMobile();
   const { theme, toggleTheme } = useTheme();
 
-  // Data queries
   const areasQuery = trpc.areas.list.useQuery();
   const projectsQuery = trpc.projects.list.useQuery();
   const tagsQuery = trpc.tags.list.useQuery();
 
-  // Create dialogs
   const [showCreateArea, setShowCreateArea] = useState(false);
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [showCreateTag, setShowCreateTag] = useState(false);
@@ -165,6 +163,7 @@ function DashboardLayoutContent({
 
   const navItems = [
     { icon: Calendar, label: "Today", path: "/" },
+    { icon: Sunrise, label: "Tomorrow", path: "/tomorrow" },
     { icon: Inbox, label: "Someday", path: "/someday" },
     { icon: Grid3X3, label: "Matrix", path: "/matrix" },
     { icon: Layers, label: "All Tasks", path: "/all" },
@@ -197,7 +196,6 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           <SidebarContent className="gap-0">
-            {/* Main nav */}
             <SidebarGroup>
               <SidebarMenu className="px-2 py-1">
                 {navItems.map(item => {
