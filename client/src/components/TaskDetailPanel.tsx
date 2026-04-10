@@ -233,22 +233,22 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
             />
           </div>
 
-          {/* Owner */}
-          <div className="space-y-3 md:space-y-2">
-            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Owner</Label>
-            <Select value={ownerId} onValueChange={v => { setOwnerId(v); triggerSave(); }}>
-              <SelectTrigger className="w-56 md:w-48 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
-                <SelectValue placeholder="Unassigned" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none" className="text-base md:text-sm py-3 md:py-1.5">Unassigned</SelectItem>
-                {usersQuery.data?.map(u => (
-                  <SelectItem key={u.id} value={String(u.id)} className="text-base md:text-sm py-3 md:py-1.5">{u.name ?? u.email ?? `User ${u.id}`}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
+{/* Owner */}
+<div className="space-y-3 md:space-y-2">
+  <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Owner</Label>
+  <Select value={ownerId} onValueChange={v => { setOwnerId(v); triggerSave(); }}>
+    <SelectTrigger className="w-56 md:w-48 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
+      <SelectValue placeholder="Unassigned" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="none" className="text-base md:text-sm py-3 md:py-1.5">No One</SelectItem>
+      <SelectItem value="sam" className="text-base md:text-sm py-3 md:py-1.5">Sam</SelectItem>
+      <SelectItem value="sierra" className="text-base md:text-sm py-3 md:py-1.5">Sierra</SelectItem>
+      <SelectItem value="isma" className="text-base md:text-sm py-3 md:py-1.5">Isma</SelectItem>
+      <SelectItem value="other" className="text-base md:text-sm py-3 md:py-1.5">Other</SelectItem>
+    </SelectContent>
+  </Select>
+</div>
           {/* Area */}
           <div className="space-y-3 md:space-y-2">
             <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Area</Label>
