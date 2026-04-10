@@ -1,7 +1,6 @@
 import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import type { Express, Request, Response } from "express";
 import * as db from "../db";
-import { getSessionCookieOptions } from "./cookies";
 import { SignJWT } from "jose";
 
 const USERS = [
@@ -34,13 +33,11 @@ export function registerOAuthRoutes(app: Express) {
       res.status(400).json({ error: "Password required" });
       return;
     }
-
     const user = USERS.find(u => u.password === password);
     if (!user) {
       res.status(401).json({ error: "Invalid password" });
       return;
     }
-
     await db.upsertUser({
       openId: user.openId,
       name: user.name,
@@ -48,15 +45,14 @@ export function registerOAuthRoutes(app: Express) {
       loginMethod: "password",
       lastSignedIn: new Date(),
     });
-
     const token = await createSessionToken(user.openId, user.name);
-    const cookieOptions = getSessionCookieOptions(req);
-    res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+    const maxAgeSeconds = Math.floor(ONE_YEAR_MS / 1000);
+    res.setHeader("Set-Cookie", `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAgeSeconds}`);
     res.json({ ok: true });
   });
 
   app.post("/api/auth/logout", (req: Request, res: Response) => {
-    res.clearCookie(COOKIE_NAME);
+    res.setHeader("Set-Cookie", `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`);
     res.json({ ok: true });
   });
 }
