@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import DashboardLayout from "./components/DashboardLayout";
 import TodayView from "./pages/TodayView";
+import TomorrowView from "./pages/TomorrowView";
 import SomedayView from "./pages/SomedayView";
 import MatrixView from "./pages/MatrixView";
 import AreaView from "./pages/AreaView";
@@ -20,6 +21,7 @@ function DesktopRouter() {
       <Switch>
         <Route path="/" component={TodayView} />
         <Route path="/today" component={TodayView} />
+        <Route path="/tomorrow" component={TomorrowView} />
         <Route path="/someday" component={SomedayView} />
         <Route path="/matrix" component={MatrixView} />
         <Route path="/all" component={AllTasksView} />
@@ -34,8 +36,6 @@ function DesktopRouter() {
 }
 
 function MobileRouter() {
-  // On mobile, only show the TodayView (Brain Dump + Sift focused)
-  // All routes redirect to the same mobile experience
   return <TodayView />;
 }
 
