@@ -8,10 +8,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { X, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -47,7 +54,6 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
   });
 
   const task = taskQuery.data;
-
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [isUrgent, setIsUrgent] = useState(false);
@@ -61,14 +67,12 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
 
-  // Track whether we've loaded from server to avoid saving on initial load
   const loadedRef = useRef(false);
-  // Counter to trigger auto-save when toggle/select values change
   const [saveCounter, setSaveCounter] = useState(0);
 
   useEffect(() => {
     if (task) {
-      loadedRef.current = false; // pause auto-save during load
+      loadedRef.current = false;
       setTitle(task.title);
       setNotes(task.notes ?? "");
       setIsUrgent(task.isUrgent);
@@ -108,12 +112,10 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
       setAreaId(task.areaId ? String(task.areaId) : "none");
       setProjectId(task.projectId ? String(task.projectId) : "none");
       setSelectedTagIds(task.tagIds ?? []);
-      // Mark loaded after a tick so the saveCounter effect doesn't fire
       requestAnimationFrame(() => { loadedRef.current = true; });
     }
   }, [task]);
 
-  // The actual save function — always reads latest state
   const doSave = useCallback(() => {
     if (!taskId || !title.trim()) return;
     updateTask.mutate({
@@ -132,7 +134,6 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
     });
   }, [taskId, title, notes, isUrgent, isImportant, doDateType, doDate, dueDate, ownerId, areaId, projectId, selectedTagIds, updateTask]);
 
-  // Auto-save when toggle/select values change (triggered by saveCounter)
   useEffect(() => {
     if (!loadedRef.current || saveCounter === 0) return;
     doSave();
@@ -143,14 +144,15 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
 
   if (!taskId) return null;
 
-  const quadrant = isUrgent && isImportant ? "Do Now" : !isUrgent && isImportant ? "Do Later" : isUrgent && !isImportant ? "Delegate" : "Delete";
-  const quadrantColorClass = isUrgent && isImportant
-    ? "text-red-600 dark:text-red-400"
-    : !isUrgent && isImportant
-      ? "text-blue-600 dark:text-blue-400"
-      : isUrgent && !isImportant
-        ? "text-amber-600 dark:text-amber-400"
-        : "text-gray-500 dark:text-gray-400";
+  const quadrant = isUrgent && isImportant ? "Do Now"
+    : !isUrgent && isImportant ? "Do Later"
+    : isUrgent && !isImportant ? "Delegate"
+    : "Delete";
+
+  const quadrantColorClass = isUrgent && isImportant ? "text-red-600 dark:text-red-400"
+    : !isUrgent && isImportant ? "text-blue-600 dark:text-blue-400"
+    : isUrgent && !isImportant ? "text-amber-600 dark:text-amber-400"
+    : "text-gray-500 dark:text-gray-400";
 
   return (
     <Sheet open={open} onOpenChange={v => { if (!v) { doSave(); onClose(); } }}>
@@ -158,8 +160,8 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
         <SheetHeader className="pb-2 pt-0 px-0">
           <SheetTitle className="sr-only">Edit Task</SheetTitle>
         </SheetHeader>
-
         <div className="space-y-8 md:space-y-6 pb-8 px-0">
+
           {/* Title */}
           <div>
             <Input
@@ -176,23 +178,15 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
             <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Eisenhower Matrix</Label>
             <div className="flex items-center gap-8 md:gap-6">
               <div className="flex items-center gap-3 md:gap-2">
-                <Switch
-                  checked={isUrgent}
-                  onCheckedChange={v => { setIsUrgent(v); triggerSave(); }}
-                />
+                <Switch checked={isUrgent} onCheckedChange={v => { setIsUrgent(v); triggerSave(); }} />
                 <span className="text-base md:text-sm">Urgent</span>
               </div>
               <div className="flex items-center gap-3 md:gap-2">
-                <Switch
-                  checked={isImportant}
-                  onCheckedChange={v => { setIsImportant(v); triggerSave(); }}
-                />
+                <Switch checked={isImportant} onCheckedChange={v => { setIsImportant(v); triggerSave(); }} />
                 <span className="text-base md:text-sm">Important</span>
               </div>
             </div>
-            <p className={cn("text-base md:text-sm font-medium", quadrantColorClass)}>
-              → {quadrant}
-            </p>
+            <p className={cn("text-base md:text-sm font-medium", quadrantColorClass)}>→ {quadrant}</p>
           </div>
 
           {/* Do Date */}
@@ -210,13 +204,7 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
                 </SelectContent>
               </Select>
               {doDateType === "date" && (
-                <Input
-                  type="date"
-                  value={doDate}
-                  onChange={e => setDoDate(e.target.value)}
-                  onBlur={handleBlur}
-                  className="w-48 md:w-44 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
-                />
+                <Input type="date" value={doDate} onChange={e => setDoDate(e.target.value)} onBlur={handleBlur} className="w-48 md:w-44 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md" />
               )}
             </div>
           </div>
@@ -224,31 +212,27 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
           {/* Due Date */}
           <div className="space-y-3 md:space-y-2">
             <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Due Date (optional)</Label>
-            <Input
-              type="date"
-              value={dueDate}
-              onChange={e => setDueDate(e.target.value)}
-              onBlur={handleBlur}
-              className="w-48 md:w-44 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md"
-            />
+            <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} onBlur={handleBlur} className="w-48 md:w-44 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md" />
           </div>
 
-{/* Owner */}
-<div className="space-y-3 md:space-y-2">
-  <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Owner</Label>
-  <Select value={ownerId} onValueChange={v => { setOwnerId(v); triggerSave(); }}>
-    <SelectTrigger className="w-56 md:w-48 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
-      <SelectValue placeholder="Unassigned" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="none" className="text-base md:text-sm py-3 md:py-1.5">No One</SelectItem>
-      <SelectItem value="sam" className="text-base md:text-sm py-3 md:py-1.5">Sam</SelectItem>
-      <SelectItem value="sierra" className="text-base md:text-sm py-3 md:py-1.5">Sierra</SelectItem>
-      <SelectItem value="isma" className="text-base md:text-sm py-3 md:py-1.5">Isma</SelectItem>
-      <SelectItem value="other" className="text-base md:text-sm py-3 md:py-1.5">Other</SelectItem>
-    </SelectContent>
-  </Select>
-</div>
+          {/* Owner — uses real user IDs from DB */}
+          <div className="space-y-3 md:space-y-2">
+            <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Owner</Label>
+            <Select value={ownerId} onValueChange={v => { setOwnerId(v); triggerSave(); }}>
+              <SelectTrigger className="w-56 md:w-48 h-12 md:h-9 text-base md:text-sm rounded-xl md:rounded-md">
+                <SelectValue placeholder="Unassigned" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none" className="text-base md:text-sm py-3 md:py-1.5">No One</SelectItem>
+                {usersQuery.data?.map(u => (
+                  <SelectItem key={u.id} value={String(u.id)} className="text-base md:text-sm py-3 md:py-1.5">
+                    {u.name ?? u.email ?? `User ${u.id}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Area */}
           <div className="space-y-3 md:space-y-2">
             <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Area</Label>
@@ -281,37 +265,44 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
             </Select>
           </div>
 
-          {/* Tags */}
+          {/* Tags — clear selected vs unselected state */}
           <div className="space-y-3 md:space-y-2">
             <Label className="text-sm md:text-xs uppercase tracking-wider text-muted-foreground">Tags</Label>
-            <div className="flex flex-wrap gap-2.5 md:gap-1.5">
-              {tagsQuery.data?.map(tag => {
-                const isSelected = selectedTagIds.includes(tag.id);
-                return (
-                  <Badge
-                    key={tag.id}
-                    variant={isSelected ? "default" : "outline"}
-                    className={cn(
-                      "cursor-pointer text-base md:text-xs px-3 md:px-2 py-2 md:py-0.5 h-auto transition-colors rounded-xl md:rounded-md",
-                      isSelected && "bg-primary text-primary-foreground"
-                    )}
-                    onClick={() => {
-                      const next = isSelected
-                        ? selectedTagIds.filter(id => id !== tag.id)
-                        : [...selectedTagIds, tag.id];
-                      setSelectedTagIds(next);
-                      triggerSave();
-                    }}
-                  >
-                    <div
-                      className="h-3 w-3 md:h-2 md:w-2 rounded-full mr-1.5 md:mr-1"
-                      style={{ backgroundColor: tag.color ?? "#6366f1" }}
-                    />
-                    {tag.name}
-                  </Badge>
-                );
-              })}
-            </div>
+            {tagsQuery.data && tagsQuery.data.length > 0 ? (
+              <div className="flex flex-wrap gap-2.5 md:gap-1.5">
+                {tagsQuery.data.map(tag => {
+                  const isSelected = selectedTagIds.includes(tag.id);
+                  return (
+                    <Badge
+                      key={tag.id}
+                      variant="outline"
+                      className={cn(
+                        "cursor-pointer text-base md:text-xs px-3 md:px-2 py-2 md:py-0.5 h-auto transition-all rounded-xl md:rounded-md border",
+                        isSelected
+                          ? "border-transparent text-white font-medium"
+                          : "bg-transparent text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                      )}
+                      style={isSelected ? { backgroundColor: tag.color ?? "#6366f1", borderColor: tag.color ?? "#6366f1" } : {}}
+                      onClick={() => {
+                        const next = isSelected
+                          ? selectedTagIds.filter(id => id !== tag.id)
+                          : [...selectedTagIds, tag.id];
+                        setSelectedTagIds(next);
+                        triggerSave();
+                      }}
+                    >
+                      <div
+                        className="h-3 w-3 md:h-2 md:w-2 rounded-full mr-1.5 md:mr-1 shrink-0"
+                        style={{ backgroundColor: isSelected ? "rgba(255,255,255,0.7)" : (tag.color ?? "#6366f1") }}
+                      />
+                      {tag.name}
+                    </Badge>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No tags yet. Create one from the sidebar.</p>
+            )}
           </div>
 
           {/* Notes */}
@@ -332,10 +323,8 @@ export default function TaskDetailPanel({ taskId, open, onClose }: TaskDetailPan
             <div className="space-y-2 md:space-y-1">
               {task?.subtasks?.map(sub => (
                 <div key={sub.id} className="flex items-center gap-3 md:gap-2 group py-2 md:py-0.5">
-                  <div
-                    className="shrink-0 flex items-center justify-center w-10 h-10 md:w-auto md:h-auto"
-                    onClick={() => updateSubtask.mutate({ id: sub.id, isDone: !sub.isDone })}
-                  >
+                  <div className="shrink-0 flex items-center justify-center w-10 h-10 md:w-auto md:h-auto"
+                    onClick={() => updateSubtask.mutate({ id: sub.id, isDone: !sub.isDone })}>
                     <Checkbox
                       checked={sub.isDone}
                       onCheckedChange={v => updateSubtask.mutate({ id: sub.id, isDone: !!v })}
