@@ -397,19 +397,19 @@ function MobileTodayView() {
       {/* Action buttons — massive, full-width, impossible to miss */}
       <div className="px-6 pb-6 space-y-4">
         <button
-          onClick={() => { setDumpItems([]); setDumpInput(""); setScreen("braindump"); }}
-          className="w-full h-24 rounded-3xl bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-200 dark:border-amber-800 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform"
+            onClick={() => { setDumpItems([]); setDumpInput(""); setScreen("braindump"); }}
+            className="w-full h-24 rounded-3xl bg-yellow-50 dark:bg-yellow-950/30 border-2 border-yellow-200 dark:border-yellow-800 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform"
         >
-          <Sunrise className="h-10 w-10 text-amber-500" />
-          <span className="text-2xl font-bold text-amber-700 dark:text-amber-300">Morning Brain Dump</span>
+            <Sunrise className="h-10 w-10 text-yellow-500" />
+            <span className="text-2xl font-bold text-yellow-700 dark:text-yellow-200">Morning Brain Dump</span>
         </button>
         <button
-          onClick={() => { setSiftSelected(new Set()); setScreen("sift"); }}
-          disabled={incompleteTasks.length === 0}
-          className="w-full h-24 rounded-3xl bg-orange-50 dark:bg-orange-950/30 border-2 border-orange-200 dark:border-orange-800 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform disabled:opacity-30"
+            onClick={() => { setSiftSelected(new Set()); setScreen("sift"); }}
+            disabled={incompleteTasks.length === 0}
+            className="w-full h-24 rounded-3xl bg-indigo-50 dark:bg-indigo-950/30 border-2 border-indigo-200 dark:border-indigo-800 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform disabled:opacity-30"
         >
-          <Sunset className="h-10 w-10 text-orange-500" />
-          <span className="text-2xl font-bold text-orange-700 dark:text-orange-300">Evening Sift</span>
+          <Sunset className="h-10 w-10 text-indigo-500" />
+          <span className="text-2xl font-bold text-indigo-700 dark:text-indigo-200">Evening Sift</span>
         </button>
       </div>
 
