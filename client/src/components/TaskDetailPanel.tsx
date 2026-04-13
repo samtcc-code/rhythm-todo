@@ -178,7 +178,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
   };
 
   return (
-    <TooltipProvider delayDuration={400}>
+    <>
       <div className="rounded-xl bg-white/90 backdrop-blur shadow-md border border-white/60 mx-0 my-1 overflow-hidden">
 
         {/* Header row */}
