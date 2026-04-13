@@ -228,7 +228,7 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           <SidebarContent className="overflow-y-auto overflow-x-hidden">
-            <div className="flex flex-col px-4 py-5">
+            <div className="flex flex-col gap-2 px-4 py-5">
 
               {/* Nav items */}
               {navItems.map(item => {
