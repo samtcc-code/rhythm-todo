@@ -12,7 +12,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Calendar, Clock, User, Tag, Trash2, X, Plus, AlertCircle, Star } from "lucide-react";
+import {
+  Calendar, Clock, User, Tag, Trash2, X, Plus,
+  AlertCircle, Star, FolderOpen, ClipboardList,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TaskDetailPanelProps {
@@ -50,9 +53,7 @@ function TaskCheckbox({ checked, onChange }: { checked: boolean; onChange: () =>
       onClick={onChange}
       className={cn(
         "h-5 w-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all",
-        checked
-          ? "bg-primary border-primary"
-          : "border-blue-300 bg-white hover:border-primary"
+        checked ? "bg-primary border-primary" : "border-blue-300 bg-white hover:border-primary"
       )}
       style={!checked ? { boxShadow: "0 0 0 1px #d3f6ff" } : {}}
     >
@@ -71,9 +72,7 @@ function SubtaskCheckbox({ checked, onChange }: { checked: boolean; onChange: ()
       onClick={onChange}
       className={cn(
         "h-4 w-4 rounded border-2 shrink-0 flex items-center justify-center transition-all",
-        checked
-          ? "bg-amber-400 border-amber-400"
-          : "border-amber-300 bg-white hover:border-amber-400"
+        checked ? "bg-amber-400 border-amber-400" : "border-amber-300 bg-white hover:border-amber-400"
       )}
     >
       {checked && (
@@ -90,6 +89,8 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
   const taskQuery = trpc.tasks.get.useQuery({ id: taskId });
   const usersQuery = trpc.users.list.useQuery();
   const tagsQuery = trpc.tags.list.useQuery();
+  const areasQuery = trpc.areas.list.useQuery();
+  const projectsQuery = trpc.projects.list.useQuery();
 
   const updateTask = trpc.tasks.update.useMutation({ onSuccess: () => utils.tasks.invalidate() });
   const deleteTask = trpc.tasks.delete.useMutation({ onSuccess: () => { utils.tasks.invalidate(); onClose(); } });
@@ -108,6 +109,8 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
   const [doDate, setDoDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [ownerId, setOwnerId] = useState<string>("none");
+  const [areaId, setAreaId] = useState<string>("none");
+  const [projectId, setProjectId] = useState<string>("none");
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
 
@@ -127,6 +130,8 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
       else { setDoDateType("none"); setDoDate(""); }
       setDueDate(task.dueDate ? formatDateForInput(task.dueDate) : "");
       setOwnerId(task.ownerId ? String(task.ownerId) : "none");
+      setAreaId(task.areaId ? String(task.areaId) : "none");
+      setProjectId(task.projectId ? String(task.projectId) : "none");
       setSelectedTagIds(task.tagIds ?? []);
       requestAnimationFrame(() => { loadedRef.current = true; });
     }
@@ -144,9 +149,11 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
       doDateSomeday: doDateType === "someday",
       dueDate: dueDate || null,
       ownerId: ownerId !== "none" ? parseInt(ownerId) : null,
+      areaId: areaId !== "none" ? parseInt(areaId) : null,
+      projectId: projectId !== "none" ? parseInt(projectId) : null,
       tagIds: selectedTagIds,
     });
-  }, [taskId, title, notes, isUrgent, isImportant, doDateType, doDate, dueDate, ownerId, selectedTagIds, updateTask]);
+  }, [taskId, title, notes, isUrgent, isImportant, doDateType, doDate, dueDate, ownerId, areaId, projectId, selectedTagIds, updateTask]);
 
   useEffect(() => {
     if (!loadedRef.current || saveCounter === 0) return;
@@ -162,7 +169,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
     onToggleComplete?.(next);
   };
 
-  // Skeleton shown while loading — same shape as the real card
+  // Skeleton
   if (!task) return (
     <div className="rounded-xl bg-white/90 backdrop-blur shadow-md border border-white/60 mx-0 my-1 overflow-hidden animate-in fade-in-0 duration-200">
       <div className="flex items-start gap-3 px-4 pt-4 pb-2">
@@ -179,6 +186,8 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
   );
 
   const ownerName = usersQuery.data?.find(u => String(u.id) === ownerId)?.name;
+  const areaName = areasQuery.data?.find(a => String(a.id) === areaId)?.name;
+  const projectName = projectsQuery.data?.find(p => String(p.id) === projectId)?.name;
   const selectedTags = tagsQuery.data?.filter(t => selectedTagIds.includes(t.id)) ?? [];
   const doDateDisplay = doDateType === "someday" ? "Someday" : doDateType === "date" && doDate ? formatDateDisplay(doDate) : null;
   const dueDateDisplay = dueDate ? formatDateDisplay(dueDate) : null;
@@ -191,7 +200,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
   return (
     <div className="rounded-xl bg-white/90 backdrop-blur shadow-md border border-white/60 mx-0 my-1 overflow-hidden animate-in fade-in-0 duration-200">
 
-      {/* Header row */}
+      {/* Header */}
       <div className="flex items-start gap-3 px-4 pt-4 pb-2">
         <div className="shrink-0 mt-0.5">
           <TaskCheckbox checked={isDone} onChange={toggleDone} />
@@ -227,15 +236,9 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
         <div className="px-4 pb-3 space-y-1.5">
           {task.subtasks.map(sub => (
             <div key={sub.id} className="flex items-center gap-2 group">
-              <SubtaskCheckbox
-                checked={sub.isDone}
-                onChange={() => updateSubtask.mutate({ id: sub.id, isDone: !sub.isDone })}
-              />
+              <SubtaskCheckbox checked={sub.isDone} onChange={() => updateSubtask.mutate({ id: sub.id, isDone: !sub.isDone })} />
               <span className={cn("text-sm flex-1", sub.isDone && "line-through text-muted-foreground")}>{sub.title}</span>
-              <button
-                onClick={() => deleteSubtask.mutate({ id: sub.id })}
-                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
-              >
+              <button onClick={() => deleteSubtask.mutate({ id: sub.id })} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all">
                 <X className="h-3 w-3" />
               </button>
             </div>
@@ -266,10 +269,10 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
       <div className="flex items-center justify-between px-4 py-2.5 border-t border-black/5 bg-black/[0.02]">
 
         {/* Left: do date, tags */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
-              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-1.5 py-1 rounded hover:bg-black/5">
                 <Calendar className="h-3.5 w-3.5" />
                 <span>{doDateDisplay ?? "Do date"}</span>
               </button>
@@ -287,7 +290,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
 
           <Popover>
             <PopoverTrigger asChild>
-              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-1.5 py-1 rounded hover:bg-black/5">
                 <Tag className="h-3.5 w-3.5" />
                 {selectedTags.length > 0 ? (
                   <div className="flex items-center gap-1">
@@ -322,9 +325,67 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
           </Popover>
         </div>
 
-        {/* Right: urgency, importance, owner, due date, delete */}
+        {/* Right: area, project, urgency, importance, owner, due date, delete */}
         <div className="flex items-center gap-1">
 
+          {/* Area */}
+          <Popover>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <button className={cn("flex items-center gap-1 px-1.5 py-1 rounded transition-colors text-xs", areaId !== "none" ? "text-emerald-600 bg-emerald-50" : "text-muted-foreground hover:text-foreground hover:bg-black/5")}>
+                    <FolderOpen className="h-3.5 w-3.5" />
+                    {areaId !== "none" && <span className="max-w-[60px] truncate">{areaName}</span>}
+                  </button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="top"><p>Set area</p></TooltipContent>
+            </Tooltip>
+            <PopoverContent className="w-44 p-2" align="end">
+              <div className="space-y-1">
+                <button onClick={() => { setAreaId("none"); setProjectId("none"); triggerSave(); }} className={cn("w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors", areaId === "none" && "font-medium text-primary")}>
+                  No area
+                </button>
+                {areasQuery.data?.map(a => (
+                  <button key={a.id} onClick={() => { setAreaId(String(a.id)); triggerSave(); }} className={cn("w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors", String(a.id) === areaId && "font-medium text-primary")}>
+                    {a.name}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Project */}
+          <Popover>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <button className={cn("flex items-center gap-1 px-1.5 py-1 rounded transition-colors text-xs", projectId !== "none" ? "text-violet-600 bg-violet-50" : "text-muted-foreground hover:text-foreground hover:bg-black/5")}>
+                    <ClipboardList className="h-3.5 w-3.5" />
+                    {projectId !== "none" && <span className="max-w-[60px] truncate">{projectName}</span>}
+                  </button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="top"><p>Set project</p></TooltipContent>
+            </Tooltip>
+            <PopoverContent className="w-44 p-2" align="end">
+              <div className="space-y-1">
+                <button onClick={() => { setProjectId("none"); triggerSave(); }} className={cn("w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors", projectId === "none" && "font-medium text-primary")}>
+                  No project
+                </button>
+                {/* Show all projects, or filtered by area if one is set */}
+                {projectsQuery.data
+                  ?.filter(p => areaId === "none" || p.areaId === parseInt(areaId) || p.areaId === null)
+                  .map(p => (
+                    <button key={p.id} onClick={() => { setProjectId(String(p.id)); triggerSave(); }} className={cn("w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors", String(p.id) === projectId && "font-medium text-primary")}>
+                      {p.name}
+                    </button>
+                  ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Urgency */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -337,6 +398,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
             <TooltipContent side="top"><p>Mark urgent</p></TooltipContent>
           </Tooltip>
 
+          {/* Importance */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -349,6 +411,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
             <TooltipContent side="top"><p>Mark important</p></TooltipContent>
           </Tooltip>
 
+          {/* Owner */}
           <Popover>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -373,6 +436,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
             </PopoverContent>
           </Popover>
 
+          {/* Due date */}
           <Popover>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -395,6 +459,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
             </PopoverContent>
           </Popover>
 
+          {/* Delete */}
           <Tooltip>
             <TooltipTrigger asChild>
               <button
