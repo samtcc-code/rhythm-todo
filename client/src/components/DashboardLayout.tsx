@@ -62,6 +62,7 @@ import {
 } from "./ui/select";
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
+const SIDEBAR_OPEN_KEY = "sidebar-open";
 const DEFAULT_WIDTH = 260;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 480;
@@ -71,6 +72,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
+
+  const defaultOpen = localStorage.getItem(SIDEBAR_OPEN_KEY) !== "false";
   const { loading, user } = useAuth();
 
   useEffect(() => {
@@ -100,7 +103,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <SidebarProvider style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}>
+    <SidebarProvider
+      defaultOpen={defaultOpen}
+      style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}
+    >
       <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
         {children}
       </DashboardLayoutContent>
@@ -141,6 +147,10 @@ function DashboardLayoutContent({
   const [editingTag, setEditingTag] = useState<{ id: number; name: string; color: string } | null>(null);
   const [editName, setEditName] = useState("");
   const [editTagColor, setEditTagColor] = useState("#6366f1");
+
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_OPEN_KEY, isCollapsed ? "false" : "true");
+  }, [isCollapsed]);
 
   const createArea = trpc.areas.create.useMutation({ onSuccess: () => { areasQuery.refetch(); setShowCreateArea(false); setNewName(""); } });
   const createProject = trpc.projects.create.useMutation({ onSuccess: () => { projectsQuery.refetch(); setShowCreateProject(false); setNewName(""); setNewProjectAreaId("none"); } });
@@ -189,10 +199,11 @@ function DashboardLayoutContent({
     return location === path;
   };
 
+  // py-2 for nav items matches the visual weight of section items with their headers
   const navBtn = (active: boolean) =>
-  `flex items-center gap-2.5 w-full px-3 py-1.5 rounded-md text-sm transition-colors text-left ${
-    active ? "bg-white/50 text-primary font-medium" : "text-foreground/80 hover:bg-white/30 hover:text-foreground"
-  }`;
+    `flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm transition-colors text-left ${
+      active ? "bg-white/50 text-primary font-medium" : "text-foreground/80 hover:bg-white/30 hover:text-foreground"
+    }`;
 
   const sectionBtn = (active: boolean) =>
     `flex items-center gap-2.5 flex-1 min-w-0 px-3 py-1.5 rounded-md text-sm transition-colors text-left ${
@@ -228,27 +239,43 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           <SidebarContent className="overflow-y-auto overflow-x-hidden">
-            <div className="flex flex-col px-2 py-4">
+            <div className="flex flex-col px-2 py-2">
 
-{navItems.map(item => {
-  const active = isActive(item.path);
-  return (
-    <button
-      key={item.path}
-      onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
-      className={isCollapsed
-        ? `flex items-center justify-center w-full p-2 rounded-md transition-colors ${active ? "bg-white/50 text-primary" : "text-foreground/80 hover:bg-white/30"}`
-        : navBtn(active)
-      }
-    >
-      <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
-      {!isCollapsed && <span>{item.label}</span>}
-    </button>
-  );
-})}
+              {/* Nav items */}
+              {navItems.map(item => {
+                const active = isActive(item.path);
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
+                    className={isCollapsed
+                      ? `flex items-center justify-center w-full p-2 rounded-md transition-colors ${active ? "bg-white/50 text-primary" : "text-foreground/80 hover:bg-white/30"}`
+                      : navBtn(active)
+                    }
+                  >
+                    <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                    {!isCollapsed && <span>{item.label}</span>}
+                  </button>
+                );
+              })}
 
               {!isCollapsed && (
                 <>
+                  {/* Owners */}
+                  {usersQuery.data && usersQuery.data.length > 0 && (
+                    <div className="mt-5">
+                      <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">Owners</p>
+                      {usersQuery.data.map(u => {
+                        const active = location === `/owner/${u.id}`;
+                        return (
+                          <button key={u.id} onClick={() => { setLocation(`/owner/${u.id}`); if (isMobile) toggleSidebar(); }} className={navBtn(active)}>
+                            <User className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                            <span className="truncate">{u.name ?? u.email ?? `User ${u.id}`}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {/* Areas */}
                   <div className="mt-5">
@@ -452,7 +479,6 @@ function DashboardLayoutContent({
         </DialogContent>
       </Dialog>
 
-      {/* Create Project */}
       <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>New Project</DialogTitle></DialogHeader>
@@ -495,7 +521,6 @@ function DashboardLayoutContent({
         </DialogContent>
       </Dialog>
 
-      {/* Create Tag */}
       <Dialog open={showCreateTag} onOpenChange={setShowCreateTag}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>New Tag</DialogTitle></DialogHeader>
