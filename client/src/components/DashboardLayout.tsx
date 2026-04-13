@@ -19,7 +19,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarGroupContent,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -38,7 +37,6 @@ import {
   PanelLeft,
   FolderOpen,
   ClipboardList,
-  Tag,
   Plus,
   MoreHorizontal,
   Layers,
@@ -93,7 +91,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
               <CheckSquare className="h-6 w-6 text-primary" />
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-center text-foreground">Rhythm</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-center text-foreground">Daily Rhythm</h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
               Your morning and evening task rhythm. Sign in to continue.
             </p>
@@ -112,6 +110,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {children}
       </DashboardLayoutContent>
     </SidebarProvider>
+  );
+}
+
+function SectionHeader({ label, onAdd }: { label: string; onAdd?: () => void }) {
+  return (
+    <div className="flex items-center justify-between px-4 mt-5 mb-1">
+      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      {onAdd && (
+        <button
+          onClick={onAdd}
+          className="h-5 w-5 flex items-center justify-center hover:bg-accent rounded transition-colors text-muted-foreground hover:text-foreground"
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -136,9 +152,6 @@ function DashboardLayoutContent({
   const tagsQuery = trpc.tags.list.useQuery();
   const usersQuery = trpc.users.list.useQuery();
 
-  const utils = trpc.useUtils();
-
-  // Create dialogs
   const [showCreateArea, setShowCreateArea] = useState(false);
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [showCreateTag, setShowCreateTag] = useState(false);
@@ -146,7 +159,6 @@ function DashboardLayoutContent({
   const [newProjectAreaId, setNewProjectAreaId] = useState<string>("none");
   const [newTagColor, setNewTagColor] = useState("#6366f1");
 
-  // Edit dialogs
   const [editingArea, setEditingArea] = useState<{ id: number; name: string } | null>(null);
   const [editingProject, setEditingProject] = useState<{ id: number; name: string } | null>(null);
   const [editingTag, setEditingTag] = useState<{ id: number; name: string; color: string } | null>(null);
@@ -162,7 +174,6 @@ function DashboardLayoutContent({
   const createTag = trpc.tags.create.useMutation({
     onSuccess: () => { tagsQuery.refetch(); setShowCreateTag(false); setNewName(""); setNewTagColor("#6366f1"); },
   });
-
   const updateArea = trpc.areas.update.useMutation({
     onSuccess: () => { areasQuery.refetch(); setEditingArea(null); },
   });
@@ -235,13 +246,12 @@ function DashboardLayoutContent({
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
               {!isCollapsed && (
-                <span className="font-semibold tracking-tight text-foreground truncate">Rhythm</span>
+                <span className="font-semibold tracking-tight text-foreground truncate">Daily Rhythm</span>
               )}
             </div>
           </SidebarHeader>
 
           <SidebarContent className="gap-0">
-            {/* Main nav */}
             <SidebarGroup>
               <SidebarMenu className="px-2 py-1">
                 {navItems.map(item => {
@@ -266,11 +276,7 @@ function DashboardLayoutContent({
             {/* Owners */}
             {!isCollapsed && usersQuery.data && usersQuery.data.length > 0 && (
               <SidebarGroup>
-                <div className="flex items-center justify-between px-4 pt-3 pb-1">
-                  <SidebarGroupLabel className="p-0 h-auto text-xs uppercase tracking-wider text-muted-foreground">
-                    Owners
-                  </SidebarGroupLabel>
-                </div>
+                <SectionHeader label="Owners" />
                 <SidebarGroupContent>
                   <SidebarMenu className="px-2">
                     {usersQuery.data.map(u => {
@@ -296,19 +302,7 @@ function DashboardLayoutContent({
 
             {/* Areas */}
             <SidebarGroup>
-              <div className="flex items-center justify-between px-4 pt-3 pb-1">
-                <SidebarGroupLabel className="p-0 h-auto text-xs uppercase tracking-wider text-muted-foreground">
-                  Areas
-                </SidebarGroupLabel>
-                {!isCollapsed && (
-                  <button
-                    onClick={() => setShowCreateArea(true)}
-                    className="h-5 w-5 flex items-center justify-center hover:bg-accent rounded transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
+              {!isCollapsed && <SectionHeader label="Areas" onAdd={() => setShowCreateArea(true)} />}
               <SidebarGroupContent>
                 <SidebarMenu className="px-2">
                   {areasQuery.data?.map(area => {
@@ -356,19 +350,7 @@ function DashboardLayoutContent({
 
             {/* Projects */}
             <SidebarGroup>
-              <div className="flex items-center justify-between px-4 pt-3 pb-1">
-                <SidebarGroupLabel className="p-0 h-auto text-xs uppercase tracking-wider text-muted-foreground">
-                  Projects
-                </SidebarGroupLabel>
-                {!isCollapsed && (
-                  <button
-                    onClick={() => setShowCreateProject(true)}
-                    className="h-5 w-5 flex items-center justify-center hover:bg-accent rounded transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
+              {!isCollapsed && <SectionHeader label="Projects" onAdd={() => setShowCreateProject(true)} />}
               <SidebarGroupContent>
                 <SidebarMenu className="px-2">
                   {projectsQuery.data?.map(project => {
@@ -416,19 +398,7 @@ function DashboardLayoutContent({
 
             {/* Tags */}
             <SidebarGroup>
-              <div className="flex items-center justify-between px-4 pt-3 pb-1">
-                <SidebarGroupLabel className="p-0 h-auto text-xs uppercase tracking-wider text-muted-foreground">
-                  Tags
-                </SidebarGroupLabel>
-                {!isCollapsed && (
-                  <button
-                    onClick={() => setShowCreateTag(true)}
-                    className="h-5 w-5 flex items-center justify-center hover:bg-accent rounded transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
+              {!isCollapsed && <SectionHeader label="Tags" onAdd={() => setShowCreateTag(true)} />}
               <SidebarGroupContent>
                 <SidebarMenu className="px-2">
                   {tagsQuery.data?.map(tag => {
@@ -517,7 +487,7 @@ function DashboardLayoutContent({
           <div className="flex border-b h-16 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="h-11 w-11 rounded-lg bg-background" />
-              <span className="tracking-tight text-foreground font-medium text-lg">Rhythm</span>
+              <span className="tracking-tight text-foreground font-medium text-lg">Daily Rhythm</span>
             </div>
             <button onClick={toggleTheme} className="h-11 w-11 flex items-center justify-center rounded-lg hover:bg-accent transition-colors">
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
