@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (loading) return <DashboardLayoutSkeleton />;
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -110,24 +110,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {children}
       </DashboardLayoutContent>
     </SidebarProvider>
-  );
-}
-
-function SectionHeader({ label, onAdd }: { label: string; onAdd?: () => void }) {
-  return (
-    <div className="flex items-center justify-between px-4 mt-5 mb-1">
-      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        {label}
-      </span>
-      {onAdd && (
-        <button
-          onClick={onAdd}
-          className="h-5 w-5 flex items-center justify-center hover:bg-accent rounded transition-colors text-muted-foreground hover:text-foreground"
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </button>
-      )}
-    </div>
   );
 }
 
@@ -165,37 +147,17 @@ function DashboardLayoutContent({
   const [editName, setEditName] = useState("");
   const [editTagColor, setEditTagColor] = useState("#6366f1");
 
-  const createArea = trpc.areas.create.useMutation({
-    onSuccess: () => { areasQuery.refetch(); setShowCreateArea(false); setNewName(""); },
-  });
-  const createProject = trpc.projects.create.useMutation({
-    onSuccess: () => { projectsQuery.refetch(); setShowCreateProject(false); setNewName(""); setNewProjectAreaId("none"); },
-  });
-  const createTag = trpc.tags.create.useMutation({
-    onSuccess: () => { tagsQuery.refetch(); setShowCreateTag(false); setNewName(""); setNewTagColor("#6366f1"); },
-  });
-  const updateArea = trpc.areas.update.useMutation({
-    onSuccess: () => { areasQuery.refetch(); setEditingArea(null); },
-  });
-  const deleteArea = trpc.areas.delete.useMutation({
-    onSuccess: () => { areasQuery.refetch(); },
-  });
-  const updateProject = trpc.projects.update.useMutation({
-    onSuccess: () => { projectsQuery.refetch(); setEditingProject(null); },
-  });
-  const deleteProject = trpc.projects.delete.useMutation({
-    onSuccess: () => { projectsQuery.refetch(); },
-  });
-  const updateTag = trpc.tags.update.useMutation({
-    onSuccess: () => { tagsQuery.refetch(); setEditingTag(null); },
-  });
-  const deleteTag = trpc.tags.delete.useMutation({
-    onSuccess: () => { tagsQuery.refetch(); },
-  });
+  const createArea = trpc.areas.create.useMutation({ onSuccess: () => { areasQuery.refetch(); setShowCreateArea(false); setNewName(""); } });
+  const createProject = trpc.projects.create.useMutation({ onSuccess: () => { projectsQuery.refetch(); setShowCreateProject(false); setNewName(""); setNewProjectAreaId("none"); } });
+  const createTag = trpc.tags.create.useMutation({ onSuccess: () => { tagsQuery.refetch(); setShowCreateTag(false); setNewName(""); setNewTagColor("#6366f1"); } });
+  const updateArea = trpc.areas.update.useMutation({ onSuccess: () => { areasQuery.refetch(); setEditingArea(null); } });
+  const deleteArea = trpc.areas.delete.useMutation({ onSuccess: () => { areasQuery.refetch(); } });
+  const updateProject = trpc.projects.update.useMutation({ onSuccess: () => { projectsQuery.refetch(); setEditingProject(null); } });
+  const deleteProject = trpc.projects.delete.useMutation({ onSuccess: () => { projectsQuery.refetch(); } });
+  const updateTag = trpc.tags.update.useMutation({ onSuccess: () => { tagsQuery.refetch(); setEditingTag(null); } });
+  const deleteTag = trpc.tags.delete.useMutation({ onSuccess: () => { tagsQuery.refetch(); } });
 
-  useEffect(() => {
-    if (isCollapsed) setIsResizing(false);
-  }, [isCollapsed]);
+  useEffect(() => { if (isCollapsed) setIsResizing(false); }, [isCollapsed]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -232,16 +194,29 @@ function DashboardLayoutContent({
     return location === path;
   };
 
+  const itemBtn = "flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-normal text-foreground hover:bg-white/30 transition-colors text-left";
+  const activeItemBtn = "flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-normal bg-white/40 text-primary transition-colors text-left";
+
   return (
     <>
       <div className="relative" ref={sidebarRef}>
         <Sidebar collapsible="icon" className="border-r-0" disableTransition={isResizing}>
-          <SidebarHeader className="h-14 justify-center">
-            <div className="flex items-center gap-3 px-2 transition-all w-full">
+
+          {/* Override sidebar background to be darker */}
+          <style>{`
+            [data-sidebar="sidebar"] {
+              background: rgba(180, 220, 235, 0.55) !important;
+              backdrop-filter: blur(24px);
+              -webkit-backdrop-filter: blur(24px);
+              border-right: 1px solid rgba(255,255,255,0.3) !important;
+            }
+          `}</style>
+
+          <SidebarHeader className="h-14 justify-center shrink-0">
+            <div className="flex items-center gap-3 px-2 w-full">
               <button
                 onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
-                aria-label="Toggle navigation"
+                className="h-8 w-8 flex items-center justify-center hover:bg-white/30 rounded-lg transition-colors focus:outline-none shrink-0"
               >
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
@@ -251,213 +226,173 @@ function DashboardLayoutContent({
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0">
-            <SidebarGroup>
-              <SidebarMenu className="px-2 py-1">
-                {navItems.map(item => {
-                  const active = isActive(item.path);
-                  return (
-                    <SidebarMenuItem key={item.path}>
-                      <SidebarMenuButton
-                        isActive={active}
-                        onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
-                        tooltip={item.label}
-                        className="h-12 md:h-9 transition-all font-normal text-base md:text-sm"
-                      >
-                        <item.icon className={`h-5 w-5 md:h-4 md:w-4 ${active ? "text-primary" : ""}`} />
-                        <span>{item.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroup>
+          <SidebarContent className="overflow-y-auto">
+            <div className="flex flex-col px-2 py-2 gap-0.5">
+              {/* Main nav items */}
+              {navItems.map(item => {
+                const active = isActive(item.path);
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
+                    className={active ? activeItemBtn : itemBtn}
+                  >
+                    <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                    {!isCollapsed && <span>{item.label}</span>}
+                  </button>
+                );
+              })}
 
-            {/* Owners */}
-            {!isCollapsed && usersQuery.data && usersQuery.data.length > 0 && (
-              <SidebarGroup>
-                <SectionHeader label="Owners" />
-                <SidebarGroupContent>
-                  <SidebarMenu className="px-2">
-                    {usersQuery.data.map(u => {
-                      const active = location === `/owner/${u.id}`;
-                      return (
-                        <SidebarMenuItem key={u.id}>
-                          <SidebarMenuButton
-                            isActive={active}
-                            onClick={() => { setLocation(`/owner/${u.id}`); if (isMobile) toggleSidebar(); }}
-                            tooltip={u.name ?? ""}
-                            className="h-11 md:h-8 font-normal text-base md:text-sm"
-                          >
-                            <User className={`h-5 w-5 md:h-3.5 md:w-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                            <span className="truncate">{u.name ?? u.email ?? `User ${u.id}`}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )}
+              {/* Owners */}
+              {!isCollapsed && usersQuery.data && usersQuery.data.length > 0 && (
+                <div className="mt-5">
+                  <p className="px-3 mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">Owners</p>
+                  {usersQuery.data.map(u => {
+                    const active = location === `/owner/${u.id}`;
+                    return (
+                      <button key={u.id} onClick={() => { setLocation(`/owner/${u.id}`); if (isMobile) toggleSidebar(); }} className={active ? activeItemBtn : itemBtn}>
+                        <User className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className="truncate">{u.name ?? u.email ?? `User ${u.id}`}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
-            {/* Areas */}
-            <SidebarGroup>
-              {!isCollapsed && <SectionHeader label="Areas" onAdd={() => setShowCreateArea(true)} />}
-              <SidebarGroupContent>
-                <SidebarMenu className="px-2">
+              {/* Areas */}
+              {!isCollapsed && (
+                <div className="mt-5">
+                  <div className="flex items-center justify-between px-3 mb-1">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Areas</p>
+                    <button onClick={() => setShowCreateArea(true)} className="h-4 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                   {areasQuery.data?.map(area => {
                     const active = location === `/area/${area.id}`;
                     return (
-                      <SidebarMenuItem key={area.id}>
-                        <div className="flex items-center group w-full">
-                          <SidebarMenuButton
-                            isActive={active}
-                            onClick={() => { setLocation(`/area/${area.id}`); if (isMobile) toggleSidebar(); }}
-                            tooltip={area.name}
-                            className="h-11 md:h-8 font-normal text-base md:text-sm flex-1"
-                          >
-                            <FolderOpen className={`h-5 w-5 md:h-3.5 md:w-3.5 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                            <span className="truncate">{area.name}</span>
-                          </SidebarMenuButton>
-                          {!isCollapsed && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-all shrink-0 mr-1">
-                                  <MoreHorizontal className="h-3.5 w-3.5" />
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-36">
-                                <DropdownMenuItem onClick={() => { setEditingArea({ id: area.id, name: area.name }); setEditName(area.name); }}>
-                                  <Pencil className="h-3.5 w-3.5 mr-2" /> Rename
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-destructive focus:text-destructive"
-                                  onClick={() => { if (confirm(`Delete "${area.name}"?`)) deleteArea.mutate({ id: area.id }); }}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-                        </div>
-                      </SidebarMenuItem>
+                      <div key={area.id} className="flex items-center group">
+                        <button onClick={() => { setLocation(`/area/${area.id}`); if (isMobile) toggleSidebar(); }} className={`${active ? activeItemBtn : itemBtn} flex-1`}>
+                          <FolderOpen className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                          <span className="truncate">{area.name}</span>
+                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center rounded hover:bg-white/30 text-muted-foreground transition-all shrink-0 mr-1">
+                              <MoreHorizontal className="h-3.5 w-3.5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-36">
+                            <DropdownMenuItem onClick={() => { setEditingArea({ id: area.id, name: area.name }); setEditName(area.name); }}>
+                              <Pencil className="h-3.5 w-3.5 mr-2" /> Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => { if (confirm(`Delete "${area.name}"?`)) deleteArea.mutate({ id: area.id }); }}>
+                              <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     );
                   })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+                </div>
+              )}
 
-            {/* Projects */}
-            <SidebarGroup>
-              {!isCollapsed && <SectionHeader label="Projects" onAdd={() => setShowCreateProject(true)} />}
-              <SidebarGroupContent>
-                <SidebarMenu className="px-2">
+              {/* Projects */}
+              {!isCollapsed && (
+                <div className="mt-5">
+                  <div className="flex items-center justify-between px-3 mb-1">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Projects</p>
+                    <button onClick={() => setShowCreateProject(true)} className="h-4 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                   {projectsQuery.data?.map(project => {
                     const active = location === `/project/${project.id}`;
                     return (
-                      <SidebarMenuItem key={project.id}>
-                        <div className="flex items-center group w-full">
-                          <SidebarMenuButton
-                            isActive={active}
-                            onClick={() => { setLocation(`/project/${project.id}`); if (isMobile) toggleSidebar(); }}
-                            tooltip={project.name}
-                            className="h-11 md:h-8 font-normal text-base md:text-sm flex-1"
-                          >
-                            <ClipboardList className={`h-5 w-5 md:h-3.5 md:w-3.5 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                            <span className="truncate">{project.name}</span>
-                          </SidebarMenuButton>
-                          {!isCollapsed && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-all shrink-0 mr-1">
-                                  <MoreHorizontal className="h-3.5 w-3.5" />
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-36">
-                                <DropdownMenuItem onClick={() => { setEditingProject({ id: project.id, name: project.name }); setEditName(project.name); }}>
-                                  <Pencil className="h-3.5 w-3.5 mr-2" /> Rename
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-destructive focus:text-destructive"
-                                  onClick={() => { if (confirm(`Delete "${project.name}"?`)) deleteProject.mutate({ id: project.id }); }}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-                        </div>
-                      </SidebarMenuItem>
+                      <div key={project.id} className="flex items-center group">
+                        <button onClick={() => { setLocation(`/project/${project.id}`); if (isMobile) toggleSidebar(); }} className={`${active ? activeItemBtn : itemBtn} flex-1`}>
+                          <ClipboardList className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                          <span className="truncate">{project.name}</span>
+                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center rounded hover:bg-white/30 text-muted-foreground transition-all shrink-0 mr-1">
+                              <MoreHorizontal className="h-3.5 w-3.5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-36">
+                            <DropdownMenuItem onClick={() => { setEditingProject({ id: project.id, name: project.name }); setEditName(project.name); }}>
+                              <Pencil className="h-3.5 w-3.5 mr-2" /> Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => { if (confirm(`Delete "${project.name}"?`)) deleteProject.mutate({ id: project.id }); }}>
+                              <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     );
                   })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+                </div>
+              )}
 
-            {/* Tags */}
-            <SidebarGroup>
-              {!isCollapsed && <SectionHeader label="Tags" onAdd={() => setShowCreateTag(true)} />}
-              <SidebarGroupContent>
-                <SidebarMenu className="px-2">
+              {/* Tags */}
+              {!isCollapsed && (
+                <div className="mt-5 mb-4">
+                  <div className="flex items-center justify-between px-3 mb-1">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Tags</p>
+                    <button onClick={() => setShowCreateTag(true)} className="h-4 w-4 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                   {tagsQuery.data?.map(tag => {
                     const active = location === `/tag/${tag.id}`;
                     return (
-                      <SidebarMenuItem key={tag.id}>
-                        <div className="flex items-center group w-full">
-                          <SidebarMenuButton
-                            isActive={active}
-                            onClick={() => { setLocation(`/tag/${tag.id}`); if (isMobile) toggleSidebar(); }}
-                            tooltip={tag.name}
-                            className="h-11 md:h-8 font-normal text-base md:text-sm flex-1"
-                          >
-                            <div className="h-3.5 w-3.5 md:h-2.5 md:w-2.5 rounded-full shrink-0" style={{ backgroundColor: tag.color ?? "#6366f1" }} />
-                            <span className="truncate">{tag.name}</span>
-                          </SidebarMenuButton>
-                          {!isCollapsed && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <button className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-all shrink-0 mr-1">
-                                  <MoreHorizontal className="h-3.5 w-3.5" />
-                                </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-36">
-                                <DropdownMenuItem onClick={() => { setEditingTag({ id: tag.id, name: tag.name, color: tag.color ?? "#6366f1" }); setEditName(tag.name); setEditTagColor(tag.color ?? "#6366f1"); }}>
-                                  <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-destructive focus:text-destructive"
-                                  onClick={() => { if (confirm(`Delete "${tag.name}"?`)) deleteTag.mutate({ id: tag.id }); }}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-                        </div>
-                      </SidebarMenuItem>
+                      <div key={tag.id} className="flex items-center group">
+                        <button onClick={() => { setLocation(`/tag/${tag.id}`); if (isMobile) toggleSidebar(); }} className={`${active ? activeItemBtn : itemBtn} flex-1`}>
+                          <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: tag.color ?? "#6366f1" }} />
+                          <span className="truncate">{tag.name}</span>
+                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center rounded hover:bg-white/30 text-muted-foreground transition-all shrink-0 mr-1">
+                              <MoreHorizontal className="h-3.5 w-3.5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-36">
+                            <DropdownMenuItem onClick={() => { setEditingTag({ id: tag.id, name: tag.name, color: tag.color ?? "#6366f1" }); setEditName(tag.name); setEditTagColor(tag.color ?? "#6366f1"); }}>
+                              <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => { if (confirm(`Delete "${tag.name}"?`)) deleteTag.mutate({ id: tag.id }); }}>
+                              <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     );
                   })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+                </div>
+              )}
+            </div>
           </SidebarContent>
 
-          <SidebarFooter className="p-3">
+          <SidebarFooter className="p-3 shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-white/30 transition-colors w-full text-left focus:outline-none">
                   <Avatar className="h-8 w-8 border shrink-0">
                     <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
                       {user?.name?.charAt(0).toUpperCase() ?? "?"}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                    <p className="text-sm font-medium truncate leading-none text-foreground">{user?.name || "-"}</p>
-                    <p className="text-xs text-muted-foreground truncate mt-1">{user?.email || "-"}</p>
-                  </div>
+                  {!isCollapsed && (
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate leading-none text-foreground">{user?.name || "-"}</p>
+                      <p className="text-xs text-muted-foreground truncate mt-1">{user?.email || "-"}</p>
+                    </div>
+                  )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -484,12 +419,12 @@ function DashboardLayoutContent({
 
       <SidebarInset>
         {isMobile && (
-          <div className="flex border-b h-16 items-center justify-between bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
+          <div className="flex border-b h-16 items-center justify-between bg-white/30 backdrop-blur px-4 sticky top-0 z-40">
             <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-11 w-11 rounded-lg bg-background" />
+              <SidebarTrigger className="h-11 w-11 rounded-lg" />
               <span className="tracking-tight text-foreground font-medium text-lg">Daily Rhythm</span>
             </div>
-            <button onClick={toggleTheme} className="h-11 w-11 flex items-center justify-center rounded-lg hover:bg-accent transition-colors">
+            <button onClick={toggleTheme} className="h-11 w-11 flex items-center justify-center rounded-lg hover:bg-white/30 transition-colors">
               {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
           </div>
@@ -504,8 +439,7 @@ function DashboardLayoutContent({
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Name</Label>
-              <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Personal, Sales" className="h-9" autoFocus
-                onKeyDown={e => { if (e.key === "Enter" && newName.trim()) createArea.mutate({ name: newName.trim() }); }} />
+              <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Personal, Sales" className="h-9" autoFocus onKeyDown={e => { if (e.key === "Enter" && newName.trim()) createArea.mutate({ name: newName.trim() }); }} />
             </div>
           </div>
           <DialogFooter>
@@ -522,8 +456,7 @@ function DashboardLayoutContent({
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Name</Label>
-              <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-9" autoFocus
-                onKeyDown={e => { if (e.key === "Enter" && editName.trim() && editingArea) updateArea.mutate({ id: editingArea.id, name: editName.trim() }); }} />
+              <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-9" autoFocus onKeyDown={e => { if (e.key === "Enter" && editName.trim() && editingArea) updateArea.mutate({ id: editingArea.id, name: editName.trim() }); }} />
             </div>
           </div>
           <DialogFooter>
@@ -540,8 +473,7 @@ function DashboardLayoutContent({
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Name</Label>
-              <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Website Redesign" className="h-9" autoFocus
-                onKeyDown={e => { if (e.key === "Enter" && newName.trim()) createProject.mutate({ name: newName.trim(), areaId: newProjectAreaId !== "none" ? parseInt(newProjectAreaId) : undefined }); }} />
+              <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Website Redesign" className="h-9" autoFocus onKeyDown={e => { if (e.key === "Enter" && newName.trim()) createProject.mutate({ name: newName.trim(), areaId: newProjectAreaId !== "none" ? parseInt(newProjectAreaId) : undefined }); }} />
             </div>
             <div className="space-y-2">
               <Label>Area (optional)</Label>
@@ -568,8 +500,7 @@ function DashboardLayoutContent({
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Name</Label>
-              <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-9" autoFocus
-                onKeyDown={e => { if (e.key === "Enter" && editName.trim() && editingProject) updateProject.mutate({ id: editingProject.id, name: editName.trim() }); }} />
+              <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-9" autoFocus onKeyDown={e => { if (e.key === "Enter" && editName.trim() && editingProject) updateProject.mutate({ id: editingProject.id, name: editName.trim() }); }} />
             </div>
           </div>
           <DialogFooter>
@@ -586,8 +517,7 @@ function DashboardLayoutContent({
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Name</Label>
-              <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Urgent, Follow-up" className="h-9" autoFocus
-                onKeyDown={e => { if (e.key === "Enter" && newName.trim()) createTag.mutate({ name: newName.trim(), color: newTagColor }); }} />
+              <Input value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Urgent, Follow-up" className="h-9" autoFocus onKeyDown={e => { if (e.key === "Enter" && newName.trim()) createTag.mutate({ name: newName.trim(), color: newTagColor }); }} />
             </div>
             <div className="space-y-2">
               <Label>Color</Label>
@@ -611,8 +541,7 @@ function DashboardLayoutContent({
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Name</Label>
-              <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-9" autoFocus
-                onKeyDown={e => { if (e.key === "Enter" && editName.trim() && editingTag) updateTag.mutate({ id: editingTag.id, name: editName.trim(), color: editTagColor }); }} />
+              <Input value={editName} onChange={e => setEditName(e.target.value)} className="h-9" autoFocus onKeyDown={e => { if (e.key === "Enter" && editName.trim() && editingTag) updateTag.mutate({ id: editingTag.id, name: editName.trim(), color: editTagColor }); }} />
             </div>
             <div className="space-y-2">
               <Label>Color</Label>
