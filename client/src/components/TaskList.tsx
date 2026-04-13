@@ -47,21 +47,14 @@ export default function TaskList({
   const handleDragRef = useRef(false);
 
   const createTask = trpc.tasks.create.useMutation({
-    onSuccess: () => {
-      utils.tasks.invalidate();
-      setNewTitle("");
-      setShowCreate(false);
-    },
+    onSuccess: () => { utils.tasks.invalidate(); setNewTitle(""); setShowCreate(false); },
   });
-
   const updateTask = trpc.tasks.update.useMutation({
     onSuccess: () => { utils.tasks.invalidate(); },
   });
-
   const deleteTask = trpc.tasks.delete.useMutation({
     onSuccess: () => { utils.tasks.invalidate(); },
   });
-
   const reorderTasks = trpc.tasks.reorder.useMutation({
     onSuccess: () => { utils.tasks.invalidate(); },
   });
@@ -109,44 +102,30 @@ export default function TaskList({
   };
 
   const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
-    if (!handleDragRef.current) {
-      e.preventDefault();
-      return;
-    }
+    if (!handleDragRef.current) { e.preventDefault(); return; }
     setDraggedIdx(idx);
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = "move";
-    }
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
     e.preventDefault();
-    if (e.dataTransfer) {
-      e.dataTransfer.dropEffect = "move";
-    }
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
     setDragOverIdx(idx);
   }, []);
 
   const handleDrop = useCallback((idx: number) => {
     if (draggedIdx === null || draggedIdx === idx) {
-      setDraggedIdx(null);
-      setDragOverIdx(null);
-      handleDragRef.current = false;
-      return;
+      setDraggedIdx(null); setDragOverIdx(null); handleDragRef.current = false; return;
     }
     const newOrder = [...tasks];
     const [moved] = newOrder.splice(draggedIdx, 1);
     newOrder.splice(idx, 0, moved);
     reorderTasks.mutate({ orderedIds: newOrder.map(t => t.id) });
-    setDraggedIdx(null);
-    setDragOverIdx(null);
-    handleDragRef.current = false;
+    setDraggedIdx(null); setDragOverIdx(null); handleDragRef.current = false;
   }, [draggedIdx, tasks, reorderTasks]);
 
   const handleDragEnd = useCallback(() => {
-    setDraggedIdx(null);
-    setDragOverIdx(null);
-    handleDragRef.current = false;
+    setDraggedIdx(null); setDragOverIdx(null); handleDragRef.current = false;
   }, []);
 
   const makeDragHandleProps = useCallback(() => ({
@@ -166,30 +145,47 @@ export default function TaskList({
 
       <div className="space-y-1 md:space-y-0.5">
         {tasks.map((task, idx) => (
-          <div
-            key={task.id}
-            draggable
-            onDragStart={e => handleDragStart(e, idx)}
-            onDragOver={e => handleDragOver(e, idx)}
-            onDrop={() => handleDrop(idx)}
-            onDragEnd={handleDragEnd}
-            className={`transition-all rounded-xl md:rounded-lg ${
-              dragOverIdx === idx && draggedIdx !== null && draggedIdx !== idx
-                ? "ring-2 ring-primary/50 ring-offset-2 md:ring-offset-1"
-                : ""
-            } ${draggedIdx === idx ? "opacity-30 scale-[0.98]" : ""}`}
-          >
-            <TaskItem
-              task={task}
-              onClick={() => setSelectedTaskId(task.id)}
-              onToggleComplete={handleToggleComplete}
-              onDelete={handleDelete}
-              users={users}
-              areas={areas}
-              projects={projects}
-              dragHandleProps={makeDragHandleProps()}
-              hideDoDate={hideDoDate}
-            />
+          <div key={task.id}>
+            {selectedTaskId === task.id ? (
+              <TaskDetailPanel
+                taskId={task.id}
+                onClose={() => setSelectedTaskId(null)}
+                onToggleComplete={(done) => {
+                  updateTask.mutate({ id: task.id, isDone: done });
+                  if (done) {
+                    showUndo({
+                      message: `"${task.title}" completed`,
+                      onUndo: () => updateTask.mutate({ id: task.id, isDone: false }),
+                    });
+                  }
+                }}
+              />
+            ) : (
+              <div
+                draggable
+                onDragStart={e => handleDragStart(e, idx)}
+                onDragOver={e => handleDragOver(e, idx)}
+                onDrop={() => handleDrop(idx)}
+                onDragEnd={handleDragEnd}
+                className={`transition-all rounded-xl md:rounded-lg ${
+                  dragOverIdx === idx && draggedIdx !== null && draggedIdx !== idx
+                    ? "ring-2 ring-primary/50 ring-offset-2 md:ring-offset-1"
+                    : ""
+                } ${draggedIdx === idx ? "opacity-30 scale-[0.98]" : ""}`}
+              >
+                <TaskItem
+                  task={task}
+                  onClick={() => setSelectedTaskId(task.id)}
+                  onToggleComplete={handleToggleComplete}
+                  onDelete={handleDelete}
+                  users={users}
+                  areas={areas}
+                  projects={projects}
+                  dragHandleProps={makeDragHandleProps()}
+                  hideDoDate={hideDoDate}
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -227,12 +223,6 @@ export default function TaskList({
           )}
         </div>
       )}
-
-      <TaskDetailPanel
-        taskId={selectedTaskId}
-        open={!!selectedTaskId}
-        onClose={() => setSelectedTaskId(null)}
-      />
     </div>
   );
 }
