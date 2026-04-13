@@ -1,4 +1,3 @@
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, GripVertical, User, FolderOpen, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -47,15 +46,37 @@ function formatDate(d: string | Date | null): string {
   const tom = new Date(now);
   tom.setDate(tom.getDate() + 1);
   if (y === tom.getFullYear() && m === tom.getMonth() && day === tom.getDate()) return "Tomorrow";
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   return `${months[m]} ${day}`;
 }
 
 function formatDueDate(d: string | Date | null): string {
   if (!d) return "";
   const date = typeof d === "string" ? new Date(d) : d;
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   return `${months[date.getUTCMonth()]} ${date.getUTCDate()}`;
+}
+
+// Circular checkbox matching the TaskDetailPanel style
+function TaskCircle({ checked, onToggle }: { checked: boolean; onToggle: (e: React.MouseEvent) => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      className={cn(
+        "h-[18px] w-[18px] md:h-[18px] md:w-[18px] rounded-full border-2 shrink-0 flex items-center justify-center transition-all group/cb",
+        checked
+          ? "bg-primary border-primary"
+          : "border-blue-300 bg-transparent hover:border-primary hover:shadow-[0_0_0_3px_rgba(147,197,253,0.4)]"
+      )}
+      style={!checked ? { boxShadow: "0 0 0 1px #d3f6ff" } : {}}
+    >
+      {checked && (
+        <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
+          <path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )}
+    </button>
+  );
 }
 
 export default function TaskItem({
@@ -72,14 +93,7 @@ export default function TaskItem({
   const ownerName = users?.find(u => u.id === task.ownerId)?.name;
   const areaName = areas?.find(a => a.id === task.areaId)?.name;
   const projectName = projects?.find(p => p.id === task.projectId)?.name;
-
-  const doDateStr = hideDoDate
-    ? null
-    : task.doDateSomeday
-      ? "Someday"
-      : task.doDate
-        ? formatDate(task.doDate)
-        : null;
+  const doDateStr = hideDoDate ? null : task.doDateSomeday ? "Someday" : task.doDate ? formatDate(task.doDate) : null;
 
   return (
     <div
@@ -103,12 +117,12 @@ export default function TaskItem({
       {/* Checkbox */}
       <div
         className="shrink-0 flex items-center justify-center w-12 h-12 md:w-auto md:h-auto -m-1 md:m-0"
-        onClick={e => {
-          e.stopPropagation();
-          onToggleComplete?.(task);
-        }}
+        onClick={e => e.stopPropagation()}
       >
-        <Checkbox checked={task.isDone} className="h-7 w-7 md:h-[18px] md:w-[18px] rounded-full" />
+        <TaskCircle
+          checked={task.isDone}
+          onToggle={e => { e.stopPropagation(); onToggleComplete?.(task); }}
+        />
       </div>
 
       <div className="flex-1 min-w-0">
@@ -118,44 +132,33 @@ export default function TaskItem({
         )}>
           {task.title}
         </p>
-
         <div className="flex items-center gap-2.5 md:gap-2 mt-2 md:mt-1 flex-wrap">
           <Badge variant="outline" className={cn("text-sm md:text-[10px] px-2.5 md:px-1.5 py-1 md:py-0 h-7 md:h-5 font-medium", quadrantColor(task.quadrant))}>
             {quadrantLabel(task.quadrant)}
           </Badge>
-
           {areaName && (
             <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
-              <FolderOpen className="h-4 w-4 md:h-3 md:w-3" />
-              {areaName}
+              <FolderOpen className="h-4 w-4 md:h-3 md:w-3" />{areaName}
             </span>
           )}
-
           {projectName && (
             <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
-              <ClipboardList className="h-4 w-4 md:h-3 md:w-3" />
-              {projectName}
+              <ClipboardList className="h-4 w-4 md:h-3 md:w-3" />{projectName}
             </span>
           )}
-
           {doDateStr && (
             <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
-              <Calendar className="h-4 w-4 md:h-3 md:w-3" />
-              {doDateStr}
+              <Calendar className="h-4 w-4 md:h-3 md:w-3" />{doDateStr}
             </span>
           )}
-
           {task.dueDate && (
             <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
-              <Clock className="h-4 w-4 md:h-3 md:w-3" />
-              Due {formatDueDate(task.dueDate)}
+              <Clock className="h-4 w-4 md:h-3 md:w-3" />Due {formatDueDate(task.dueDate)}
             </span>
           )}
-
           {ownerName && (
             <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
-              <User className="h-4 w-4 md:h-3 md:w-3" />
-              {ownerName}
+              <User className="h-4 w-4 md:h-3 md:w-3" />{ownerName}
             </span>
           )}
         </div>
