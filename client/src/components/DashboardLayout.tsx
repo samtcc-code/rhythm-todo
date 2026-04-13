@@ -190,9 +190,9 @@ function DashboardLayoutContent({
   };
 
   const navBtn = (active: boolean) =>
-    `flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm transition-colors text-left ${
-      active ? "bg-white/50 text-primary font-medium" : "text-foreground/80 hover:bg-white/30 hover:text-foreground"
-    }`;
+  `flex items-center gap-2.5 w-full px-3 py-1.5 rounded-md text-sm transition-colors text-left ${
+    active ? "bg-white/50 text-primary font-medium" : "text-foreground/80 hover:bg-white/30 hover:text-foreground"
+  }`;
 
   const sectionBtn = (active: boolean) =>
     `flex items-center gap-2.5 flex-1 min-w-0 px-3 py-1.5 rounded-md text-sm transition-colors text-left ${
@@ -230,20 +230,22 @@ function DashboardLayoutContent({
           <SidebarContent className="overflow-y-auto overflow-x-hidden">
             <div className="flex flex-col px-2 py-4">
 
-              {/* Nav items */}
-              {navItems.map(item => {
-                const active = isActive(item.path);
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
-                    className={navBtn(active)}
-                  >
-                    <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                    {!isCollapsed && <span>{item.label}</span>}
-                  </button>
-                );
-              })}
+{navItems.map(item => {
+  const active = isActive(item.path);
+  return (
+    <button
+      key={item.path}
+      onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
+      className={isCollapsed
+        ? `flex items-center justify-center w-full p-2 rounded-md transition-colors ${active ? "bg-white/50 text-primary" : "text-foreground/80 hover:bg-white/30"}`
+        : navBtn(active)
+      }
+    >
+      <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+      {!isCollapsed && <span>{item.label}</span>}
+    </button>
+  );
+})}
 
               {!isCollapsed && (
                 <>
