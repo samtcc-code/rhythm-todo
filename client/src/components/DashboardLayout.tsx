@@ -228,7 +228,7 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           <SidebarContent className="overflow-y-auto overflow-x-hidden">
-            <div className="flex flex-col px-2 py-2">
+            <div className="flex flex-col px-2 py-4">
 
               {/* Nav items */}
               {navItems.map(item => {
@@ -247,21 +247,6 @@ function DashboardLayoutContent({
 
               {!isCollapsed && (
                 <>
-                  {/* Owners */}
-                  {usersQuery.data && usersQuery.data.length > 0 && (
-                    <div className="mt-5">
-                      <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">Owners</p>
-                      {usersQuery.data.map(u => {
-                        const active = location === `/owner/${u.id}`;
-                        return (
-                          <button key={u.id} onClick={() => { setLocation(`/owner/${u.id}`); if (isMobile) toggleSidebar(); }} className={navBtn(active)}>
-                            <User className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                            <span className="truncate">{u.name ?? u.email ?? `User ${u.id}`}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
 
                   {/* Areas */}
                   <div className="mt-5">
