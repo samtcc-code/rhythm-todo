@@ -194,9 +194,9 @@ function DashboardLayoutContent({
     return location === path;
   };
 
-  const itemBtn = "flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-normal text-foreground hover:bg-white/30 transition-colors text-left";
-  const activeItemBtn = "flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-normal bg-white/40 text-primary transition-colors text-left";
-
+const itemBtn = "flex items-center gap-2 w-full px-3 h-9 rounded-md text-sm font-normal text-foreground hover:bg-white/30 transition-colors text-left";
+const activeItemBtn = "flex items-center gap-2 w-full px-3 h-9 rounded-md text-sm font-normal bg-white/40 text-primary transition-colors text-left";
+  
   return (
     <>
       <div className="relative" ref={sidebarRef}>
