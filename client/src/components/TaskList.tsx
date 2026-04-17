@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import type { Task } from "../../../drizzle/schema";
 import { useUndoToast } from "@/hooks/useUndoToast";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 interface TaskListProps {
   tasks: Task[];
@@ -45,6 +46,8 @@ export default function TaskList({
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const handleDragRef = useRef(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
 
   const createTask = trpc.tasks.create.useMutation({
     onSuccess: () => { utils.tasks.invalidate(); setNewTitle(""); setShowCreate(false); },
@@ -128,6 +131,21 @@ export default function TaskList({
     setDraggedIdx(null); setDragOverIdx(null); handleDragRef.current = false;
   }, []);
 
+    useEffect(() => {
+    if (selectedTaskId === null) return;
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (panelRef.current?.contains(target)) return;
+      if (target.closest("[data-radix-popper-content-wrapper]")) return;
+      setSelectedTaskId(null);
+    };
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, [selectedTaskId]);
+
+  return (
+    <div>
+
   const makeDragHandleProps = useCallback(() => ({
     onMouseDown: () => { handleDragRef.current = true; },
     onMouseUp: () => { handleDragRef.current = false; },
@@ -160,6 +178,7 @@ export default function TaskList({
                   }
                 }}
               />
+            </div> 
             ) : (
               <div
                 draggable
