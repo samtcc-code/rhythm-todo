@@ -215,9 +215,6 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
           )}
           placeholder="Task title"
         />
-        <button onClick={onClose} className="shrink-0 h-7 w-7 flex items-center justify-center rounded-md hover:bg-black/5 text-muted-foreground transition-colors">
-          <X className="h-4 w-4" />
-        </button>
       </div>
 
       {/* Notes */}
