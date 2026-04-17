@@ -96,7 +96,7 @@ function MobileTodayView() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-background px-8">
         <h1 className="text-4xl font-bold mb-4">Rhythm</h1>
         <p className="text-xl text-muted-foreground mb-8 text-center">Your morning and evening task rhythm.</p>
-        
+        <a
           href={loginUrl}
           className="h-16 px-10 rounded-2xl bg-primary text-primary-foreground text-xl font-semibold flex items-center justify-center"
         >
