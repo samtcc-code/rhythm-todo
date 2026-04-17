@@ -5,6 +5,13 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 
+function todayString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+const SAM_USER_ID = 1; // ← set this to Sam's actual id from the users table
+
 export const appRouter = router({
   system: systemRouter,
 
@@ -128,6 +135,7 @@ export const appRouter = router({
         isImportant: z.boolean().optional(),
         doDate: z.string().nullable().optional(),
         doDateSomeday: z.boolean().optional(),
+        doDateToday: z.boolean().optional(),
         dueDate: z.string().nullable().optional(),
         ownerId: z.number().nullable().optional(),
         areaId: z.number().nullable().optional(),
@@ -136,7 +144,13 @@ export const appRouter = router({
         tagIds: z.array(z.number()).optional(),
       }))
       .mutation(async ({ input }) => {
-        return db.createTask(input);
+        return db.createTask({
+          isUrgent: true,
+          isImportant: true,
+          doDateToday: true,
+          ownerId: SAM_USER_ID,
+          ...input,
+        });
       }),
 
     update: protectedProcedure
@@ -149,6 +163,7 @@ export const appRouter = router({
         isImportant: z.boolean().optional(),
         doDate: z.string().nullable().optional(),
         doDateSomeday: z.boolean().optional(),
+        doDateToday: z.boolean().optional(),
         dueDate: z.string().nullable().optional(),
         ownerId: z.number().nullable().optional(),
         areaId: z.number().nullable().optional(),
@@ -158,6 +173,24 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
+
+        // Auto-demote: if doDate is being pushed to a future date on a
+        // Do Now task (urgent + important), set isUrgent=false → Do Later
+        // and clear doDateToday
+        if (
+          data.doDate !== undefined &&
+          data.doDate !== null &&
+          data.doDate > todayString() &&
+          data.isUrgent === undefined &&
+          data.isImportant === undefined
+        ) {
+          const current = await db.getTask(id);
+          if (current?.isUrgent && current?.isImportant) {
+            data.isUrgent = false;
+            data.doDateToday = false;
+          }
+        }
+
         return db.updateTask(id, data);
       }),
 
