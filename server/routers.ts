@@ -200,4 +200,44 @@ export const appRouter = router({
     reorder: protectedProcedure
       .input(z.object({ orderedIds: z.array(z.number()) }))
       .mutation(async ({ input }) => {
-        return db.reorder
+        return db.reorderTasks(input.orderedIds);
+      }),
+
+    bulkMove: protectedProcedure
+      .input(z.object({
+        taskIds: z.array(z.number()),
+        doDate: z.string().nullable(),
+        doDateSomeday: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return db.bulkMoveTasks(input.taskIds, input.doDate, input.doDateSomeday);
+      }),
+  }),
+
+  // ─── Subtasks ──────────────────────────────────────────────────
+  subtasks: router({
+    list: protectedProcedure
+      .input(z.object({ taskId: z.number() }))
+      .query(async ({ input }) => {
+        return db.listSubtasks(input.taskId);
+      }),
+    create: protectedProcedure
+      .input(z.object({ taskId: z.number(), title: z.string().min(1), sortOrder: z.number().optional() }))
+      .mutation(async ({ input }) => {
+        return db.createSubtask(input);
+      }),
+    update: protectedProcedure
+      .input(z.object({ id: z.number(), title: z.string().optional(), isDone: z.boolean().optional(), sortOrder: z.number().optional() }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updateSubtask(id, data);
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return db.deleteSubtask(input.id);
+      }),
+  }),
+});
+
+export type AppRouter = typeof appRouter;
