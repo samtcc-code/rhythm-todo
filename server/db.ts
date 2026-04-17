@@ -161,6 +161,11 @@ function computeQuadrant(isUrgent: boolean, isImportant: boolean): "doNow" | "do
   return "delete";
 }
 
+function getTodayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export async function listTasks(filters?: {
   doDate?: string;
   isDone?: boolean;
@@ -176,9 +181,16 @@ export async function listTasks(filters?: {
   if (filters?.doDate === "someday") {
     conditions.push(eq(tasks.doDateSomeday, true));
   } else if (filters?.doDate && filters.doDate !== "all") {
-    conditions.push(
-      sql`(${tasks.doDate} = ${filters.doDate} OR ${tasks.doDateToday} = true)`
-    );
+    const isToday = filters.doDate === getTodayStr();
+    if (isToday) {
+      // Today: match literal doDate=today OR the perpetual today flag
+      conditions.push(
+        sql`(${tasks.doDate}::text = ${filters.doDate} OR ${tasks.doDateToday} = true)`
+      );
+    } else {
+      // Tomorrow or any future date: only match literal doDate
+      conditions.push(sql`${tasks.doDate}::text = ${filters.doDate}`);
+    }
     conditions.push(eq(tasks.doDateSomeday, false));
   }
 
