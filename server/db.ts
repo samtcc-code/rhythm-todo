@@ -176,7 +176,9 @@ export async function listTasks(filters?: {
   if (filters?.doDate === "someday") {
     conditions.push(eq(tasks.doDateSomeday, true));
   } else if (filters?.doDate && filters.doDate !== "all") {
-    conditions.push(sql`${tasks.doDate} = ${filters.doDate}`);
+    conditions.push(
+      sql`(${tasks.doDate} = ${filters.doDate} OR ${tasks.doDateToday} = true)`
+    );
     conditions.push(eq(tasks.doDateSomeday, false));
   }
 
@@ -211,6 +213,7 @@ export async function createTask(data: {
   isImportant?: boolean;
   doDate?: string | null;
   doDateSomeday?: boolean;
+  doDateToday?: boolean;
   dueDate?: string | null;
   ownerId?: number | null;
   areaId?: number | null;
@@ -231,6 +234,7 @@ export async function createTask(data: {
     quadrant,
     doDate: (data.doDate ?? null) as any,
     doDateSomeday: data.doDateSomeday ?? false,
+    doDateToday: data.doDateToday ?? false,
     dueDate: (data.dueDate ?? null) as any,
     ownerId: data.ownerId ?? null,
     areaId: data.areaId ?? null,
@@ -255,6 +259,7 @@ export async function updateTask(id: number, data: {
   isImportant?: boolean;
   doDate?: string | null;
   doDateSomeday?: boolean;
+  doDateToday?: boolean;
   dueDate?: string | null;
   ownerId?: number | null;
   areaId?: number | null;
@@ -270,6 +275,7 @@ export async function updateTask(id: number, data: {
   if (data.isDone !== undefined) set.isDone = data.isDone;
   if (data.doDate !== undefined) set.doDate = data.doDate as any;
   if (data.doDateSomeday !== undefined) set.doDateSomeday = data.doDateSomeday;
+  if (data.doDateToday !== undefined) set.doDateToday = data.doDateToday;
   if (data.dueDate !== undefined) set.dueDate = data.dueDate as any;
   if (data.ownerId !== undefined) set.ownerId = data.ownerId;
   if (data.areaId !== undefined) set.areaId = data.areaId;

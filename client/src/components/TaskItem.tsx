@@ -93,7 +93,7 @@ export default function TaskItem({
   const ownerName = users?.find(u => u.id === task.ownerId)?.name;
   const areaName = areas?.find(a => a.id === task.areaId)?.name;
   const projectName = projects?.find(p => p.id === task.projectId)?.name;
-  const doDateStr = hideDoDate ? null : task.doDateSomeday ? "Someday" : task.doDate ? formatDate(task.doDate) : null;
+  const doDateStr = hideDoDate ? null : task.doDateSomeday ? "Someday" : task.doDateToday ? "Today" : task.doDate ? formatDate(task.doDate) : null;
 
   return (
     <div

@@ -105,7 +105,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
   const [isDone, setIsDone] = useState(false);
   const [isUrgent, setIsUrgent] = useState(false);
   const [isImportant, setIsImportant] = useState(false);
-  const [doDateType, setDoDateType] = useState<"date" | "someday" | "none">("none");
+  const [doDateType, setDoDateType] = useState<"date" | "someday" | "today" | "none">("none");
   const [doDate, setDoDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [ownerId, setOwnerId] = useState<string>("none");
@@ -126,6 +126,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
       setIsUrgent(task.isUrgent);
       setIsImportant(task.isImportant);
       if (task.doDateSomeday) { setDoDateType("someday"); setDoDate(""); }
+      else if (task.doDateToday) { setDoDateType("today"); setDoDate(""); }
       else if (task.doDate) { setDoDateType("date"); setDoDate(formatDateForInput(task.doDate)); }
       else { setDoDateType("none"); setDoDate(""); }
       setDueDate(task.dueDate ? formatDateForInput(task.dueDate) : "");
@@ -147,6 +148,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
       isImportant,
       doDate: doDateType === "date" && doDate ? doDate : null,
       doDateSomeday: doDateType === "someday",
+      doDateToday: doDateType === "today",
       dueDate: dueDate || null,
       ownerId: ownerId !== "none" ? parseInt(ownerId) : null,
       areaId: areaId !== "none" ? parseInt(areaId) : null,
@@ -189,7 +191,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
   const areaName = areasQuery.data?.find(a => String(a.id) === areaId)?.name;
   const projectName = projectsQuery.data?.find(p => String(p.id) === projectId)?.name;
   const selectedTags = tagsQuery.data?.filter(t => selectedTagIds.includes(t.id)) ?? [];
-  const doDateDisplay = doDateType === "someday" ? "Someday" : doDateType === "date" && doDate ? formatDateDisplay(doDate) : null;
+  const doDateDisplay = doDateType === "someday" ? "Someday" : doDateType === "today" ? "Today" : doDateType === "date" && doDate ? formatDateDisplay(doDate) : null;
   const dueDateDisplay = dueDate ? formatDateDisplay(dueDate) : null;
 
   const quadrant = isUrgent && isImportant ? "doNow" : !isUrgent && isImportant ? "doLater" : isUrgent && !isImportant ? "delegate" : "delete";
@@ -277,6 +279,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
             <PopoverContent className="w-48 p-2" align="start">
               <div className="space-y-1">
                 <button onClick={() => { setDoDateType("none"); setDoDate(""); triggerSave(); }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">No date</button>
+                <button onClick={() => { setDoDateType("today"); setDoDate(""); triggerSave(); }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">Today</button>
                 <button onClick={() => { setDoDateType("someday"); setDoDate(""); triggerSave(); }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">Someday</button>
                 <div className="px-2 py-1">
                   <input type="date" value={doDate} onChange={e => { setDoDateType("date"); setDoDate(e.target.value); triggerSave(); }} className="w-full text-sm border rounded px-2 py-1" />
@@ -370,7 +373,6 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
                 <button onClick={() => { setProjectId("none"); triggerSave(); }} className={cn("w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors", projectId === "none" && "font-medium text-primary")}>
                   No project
                 </button>
-                {/* Show all projects, or filtered by area if one is set */}
                 {projectsQuery.data
                   ?.filter(p => areaId === "none" || p.areaId === parseInt(areaId) || p.areaId === null)
                   .map(p => (
