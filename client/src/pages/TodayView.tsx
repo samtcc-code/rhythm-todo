@@ -53,8 +53,6 @@ function getQuadrantColor(isUrgent: boolean, isImportant: boolean) {
 }
 
 // ─── Mobile Experience ──────────────────────────────────────────
-// Full-screen, no sidebar, no DashboardLayout. Just Brain Dump + Sift.
-// Everything is oversized for fat-finger use.
 
 type MobileScreen = "home" | "braindump" | "sift";
 
@@ -92,14 +90,13 @@ function MobileTodayView() {
     day: "numeric",
   });
 
-  // If not logged in, show login prompt
   if (!loading && !user) {
     const loginUrl = `${import.meta.env.VITE_OAUTH_PORTAL_URL || ""}?appId=${import.meta.env.VITE_APP_ID || ""}&state=${encodeURIComponent(JSON.stringify({ origin: window.location.origin, returnPath: "/" }))}`;
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background px-8">
         <h1 className="text-4xl font-bold mb-4">Rhythm</h1>
         <p className="text-xl text-muted-foreground mb-8 text-center">Your morning and evening task rhythm.</p>
-        <a
+        
           href={loginUrl}
           className="h-16 px-10 rounded-2xl bg-primary text-primary-foreground text-xl font-semibold flex items-center justify-center"
         >
@@ -120,7 +117,8 @@ function MobileTodayView() {
   // ── Brain Dump handlers ──
   const addDumpItem = () => {
     if (!dumpInput.trim()) return;
-    setDumpItems(prev => [...prev, { title: dumpInput.trim(), isUrgent: false, isImportant: false, forToday: true }]);
+    // ← isUrgent and isImportant default to true
+    setDumpItems(prev => [...prev, { title: dumpInput.trim(), isUrgent: true, isImportant: true, forToday: true }]);
     setDumpInput("");
   };
 
@@ -139,7 +137,7 @@ function MobileTodayView() {
         title: item.title,
         isUrgent: item.isUrgent,
         isImportant: item.isImportant,
-        doDate: item.forToday ? today : null,
+        doDateToday: item.forToday,       // ← use doDateToday instead of literal date
         doDateSomeday: !item.forToday,
       });
     }
@@ -171,7 +169,6 @@ function MobileTodayView() {
   if (screen === "braindump") {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        {/* Header — big, clear */}
         <div className="flex items-center justify-between px-6 py-5 border-b safe-area-top">
           <button
             onClick={() => setScreen("home")}
@@ -186,7 +183,6 @@ function MobileTodayView() {
           <div className="w-20" />
         </div>
 
-        {/* Input — massive, easy to hit */}
         <div className="px-6 py-6 border-b bg-background">
           <div className="flex items-center gap-4">
             <input
@@ -207,7 +203,6 @@ function MobileTodayView() {
           </div>
         </div>
 
-        {/* Items list — big cards */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           {dumpItems.length === 0 && (
             <div className="text-center py-20 text-muted-foreground">
@@ -227,7 +222,6 @@ function MobileTodayView() {
                   <X className="h-7 w-7" />
                 </button>
               </div>
-              {/* Toggle row — big fat pill buttons */}
               <div className="flex items-center gap-3 flex-wrap">
                 <button
                   onClick={() => updateDumpItem(idx, "isUrgent", !item.isUrgent)}
@@ -269,7 +263,6 @@ function MobileTodayView() {
           ))}
         </div>
 
-        {/* Submit bar — sticky at bottom, massive */}
         {dumpItems.length > 0 && (
           <div className="sticky bottom-0 px-6 py-5 border-t bg-background/95 backdrop-blur safe-area-bottom">
             <button
@@ -296,7 +289,6 @@ function MobileTodayView() {
   if (screen === "sift") {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b safe-area-top">
           <button
             onClick={() => setScreen("home")}
@@ -311,14 +303,12 @@ function MobileTodayView() {
           <div className="w-20" />
         </div>
 
-        {/* Instructions */}
         <div className="px-6 py-5 border-b bg-muted/30">
           <p className="text-lg text-muted-foreground">
             Tap tasks you didn't finish to push them to tomorrow.
           </p>
         </div>
 
-        {/* Task cards — big, tappable */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
           {incompleteTasks.map(task => {
             const selected = siftSelected.has(task.id);
@@ -360,7 +350,6 @@ function MobileTodayView() {
           )}
         </div>
 
-        {/* Submit bar */}
         <div className="sticky bottom-0 px-6 py-5 border-t bg-background/95 backdrop-blur safe-area-bottom">
           <button
             onClick={handlePushToTomorrow}
@@ -378,7 +367,6 @@ function MobileTodayView() {
   // ── Mobile Home Screen ──
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Top bar — minimal with dark mode toggle */}
       <div className="flex items-center justify-between px-6 py-5 safe-area-top">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Rhythm</h1>
         <button
@@ -389,12 +377,10 @@ function MobileTodayView() {
         </button>
       </div>
 
-      {/* Date */}
       <div className="px-6 pb-4">
         <p className="text-xl text-muted-foreground">{todayFormatted}</p>
       </div>
 
-      {/* Action buttons — massive, full-width, impossible to miss */}
       <div className="px-6 pb-6 space-y-4">
         <button
             onClick={() => { setDumpItems([]); setDumpInput(""); setScreen("braindump"); }}
@@ -413,12 +399,10 @@ function MobileTodayView() {
         </button>
       </div>
 
-      {/* Divider */}
       <div className="px-6">
         <div className="border-t" />
       </div>
 
-      {/* Simple task list — tap to check off, no detail panel, no drag */}
       <div className="flex-1 px-6 py-5 safe-area-bottom">
         {incompleteTasks.length === 0 && completedTasks.length === 0 && (
           <div className="text-center py-16 text-muted-foreground">
@@ -510,7 +494,6 @@ function DesktopTodayView() {
   const allIncomplete = todayTasks.data?.filter(t => !t.isDone) ?? [];
   const allCompleted = todayTasks.data?.filter(t => t.isDone) ?? [];
 
-  // Apply area/project filters
   const incompleteTasks = allIncomplete.filter(t => {
     if (filterAreaId !== null && t.areaId !== filterAreaId) return false;
     if (filterProjectId !== null && t.projectId !== filterProjectId) return false;
@@ -533,7 +516,8 @@ function DesktopTodayView() {
 
   const addDumpItem = () => {
     if (!dumpInput.trim()) return;
-    setDumpItems(prev => [...prev, { title: dumpInput.trim(), isUrgent: false, isImportant: false, forToday: true }]);
+    // ← isUrgent and isImportant default to true
+    setDumpItems(prev => [...prev, { title: dumpInput.trim(), isUrgent: true, isImportant: true, forToday: true }]);
     setDumpInput("");
   };
 
@@ -551,7 +535,7 @@ function DesktopTodayView() {
         title: item.title,
         isUrgent: item.isUrgent,
         isImportant: item.isImportant,
-        doDate: item.forToday ? today : null,
+        doDateToday: item.forToday,       // ← use doDateToday instead of literal date
         doDateSomeday: !item.forToday,
       });
     }
@@ -589,7 +573,6 @@ function DesktopTodayView() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">Today</h1>
@@ -607,7 +590,6 @@ function DesktopTodayView() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Filter className="h-3.5 w-3.5" />
@@ -654,7 +636,6 @@ function DesktopTodayView() {
         )}
       </div>
 
-      {/* Active tasks */}
       <div>
         {incompleteTasks.length > 0 && (
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 px-1">
@@ -672,7 +653,6 @@ function DesktopTodayView() {
         />
       </div>
 
-      {/* Completed tasks */}
       {completedTasks.length > 0 && (
         <div>
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 px-1">
