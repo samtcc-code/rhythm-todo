@@ -278,11 +278,23 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
             </PopoverTrigger>
             <PopoverContent className="w-48 p-2" align="start">
               <div className="space-y-1">
-                <button onClick={() => { setDoDateType("none"); setDoDate(""); triggerSave(); }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">No date</button>
-                <button onClick={() => { setDoDateType("today"); setDoDate(""); triggerSave(); }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">Today</button>
-                <button onClick={() => { setDoDateType("someday"); setDoDate(""); triggerSave(); }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">Someday</button>
+                <button onClick={() => {
+                  setDoDateType("none"); setDoDate("");
+                  updateTask.mutate({ id: taskId, doDate: null, doDateSomeday: false, doDateToday: false });
+                }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">No date</button>
+                <button onClick={() => {
+                  setDoDateType("today"); setDoDate("");
+                  updateTask.mutate({ id: taskId, doDate: null, doDateSomeday: false, doDateToday: true });
+                }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">Today</button>
+                <button onClick={() => {
+                  setDoDateType("someday"); setDoDate("");
+                  updateTask.mutate({ id: taskId, doDate: null, doDateSomeday: true, doDateToday: false });
+                }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">Someday</button>
                 <div className="px-2 py-1">
-                  <input type="date" value={doDate} onChange={e => { setDoDateType("date"); setDoDate(e.target.value); triggerSave(); }} className="w-full text-sm border rounded px-2 py-1" />
+                  <input type="date" value={doDate} onChange={e => {
+                    setDoDateType("date"); setDoDate(e.target.value);
+                    updateTask.mutate({ id: taskId, doDate: e.target.value, doDateSomeday: false, doDateToday: false });
+                  }} className="w-full text-sm border rounded px-2 py-1" />
                 </div>
               </div>
             </PopoverContent>
