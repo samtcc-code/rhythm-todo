@@ -337,10 +337,10 @@ export async function bulkMoveTasks(taskIds: number[], doDate: string | null, do
     await db.update(tasks).set({
       doDate: doDate as any,
       doDateSomeday: doDateSomeday ?? false,
+      doDateToday: false,  // ← always clear when explicitly setting a date
     }).where(eq(tasks.id, id));
   }
 }
-
 // ─── Subtasks ────────────────────────────────────────────────────
 
 export async function listSubtasks(taskId: number) {
