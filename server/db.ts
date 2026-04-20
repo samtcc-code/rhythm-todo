@@ -178,19 +178,14 @@ export async function listTasks(filters?: {
   const db = await getDb();
   const conditions = [];
 
- if (filters?.doDate === "someday") {
+if (filters?.doDate === "someday") {
     conditions.push(eq(tasks.doDateSomeday, true));
   } else if (filters?.doDate && filters.doDate !== "all") {
     const isToday = filters.doDate === getTodayStr();
     if (isToday) {
-      conditions.push(
-        or(
-          eq(tasks.doDateToday, true),
-          sql`${tasks.doDate}::text = ${filters.doDate}`
-        )!
-      );
+      conditions.push(sql`("doDateToday" = true OR "doDate" = ${filters.doDate}::date)`);
     } else {
-      conditions.push(sql`${tasks.doDate}::text = ${filters.doDate}`);
+      conditions.push(sql`"doDate" = ${filters.doDate}::date`);
     }
     conditions.push(eq(tasks.doDateSomeday, false));
   }
