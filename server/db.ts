@@ -176,12 +176,13 @@ export async function listTasks(filters?: {
   tagId?: number;
 }) {
   const db = await getDb();
+  const todayStr = getTodayStr();
   const conditions = [];
 
-if (filters?.doDate === "someday") {
+  if (filters?.doDate === "someday") {
     conditions.push(eq(tasks.doDateSomeday, true));
   } else if (filters?.doDate && filters.doDate !== "all") {
-    const isToday = filters.doDate === getTodayStr();
+    const isToday = filters.doDate === todayStr;
     if (isToday) {
       conditions.push(sql`("doDateToday" = true OR "doDate" = ${filters.doDate}::date)`);
     } else {
@@ -198,6 +199,14 @@ if (filters?.doDate === "someday") {
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
   const taskRows = await db.select().from(tasks).where(where).orderBy(asc(tasks.sortOrder), asc(tasks.id));
+
+  // Sync doDate to today for any doDateToday tasks that are stale or null
+  const staleToday = taskRows.filter(t => t.doDateToday && t.doDate !== todayStr);
+  if (staleToday.length > 0) {
+    await db.update(tasks)
+      .set({ doDate: todayStr as any })
+      .where(sql`id = ANY(ARRAY[${sql.join(staleToday.map(t => sql`${t.id}`), sql`, `)}])`);
+  }
 
   if (filters?.tagId !== undefined) {
     const taggedTaskIds = await db.select({ taskId: taskTags.taskId }).from(taskTags).where(eq(taskTags.tagId, filters.tagId));
@@ -234,13 +243,16 @@ export async function createTask(data: {
   const isImportant = data.isImportant ?? false;
   const quadrant = computeQuadrant(isUrgent, isImportant);
 
+  // If doDateToday is set, always sync doDate to today
+  const doDate = data.doDateToday ? getTodayStr() : (data.doDate ?? null);
+
   const result = await db.insert(tasks).values({
     title: data.title,
     notes: data.notes ?? null,
     isUrgent,
     isImportant,
     quadrant,
-    doDate: (data.doDate ?? null) as any,
+    doDate: doDate as any,
     doDateSomeday: data.doDateSomeday ?? false,
     doDateToday: data.doDateToday ?? false,
     dueDate: (data.dueDate ?? null) as any,
@@ -281,7 +293,6 @@ export async function updateTask(id: number, data: {
   if (data.title !== undefined) set.title = data.title;
   if (data.notes !== undefined) set.notes = data.notes;
   if (data.isDone !== undefined) set.isDone = data.isDone;
-  if (data.doDate !== undefined) set.doDate = data.doDate as any;
   if (data.doDateSomeday !== undefined) set.doDateSomeday = data.doDateSomeday;
   if (data.doDateToday !== undefined) set.doDateToday = data.doDateToday;
   if (data.dueDate !== undefined) set.dueDate = data.dueDate as any;
@@ -289,6 +300,13 @@ export async function updateTask(id: number, data: {
   if (data.areaId !== undefined) set.areaId = data.areaId;
   if (data.projectId !== undefined) set.projectId = data.projectId;
   if (data.sortOrder !== undefined) set.sortOrder = data.sortOrder;
+
+  // If doDateToday is being set to true, sync doDate to today
+  if (data.doDateToday === true) {
+    set.doDate = getTodayStr();
+  } else if (data.doDate !== undefined) {
+    set.doDate = data.doDate as any;
+  }
 
   if (data.isUrgent !== undefined || data.isImportant !== undefined) {
     const current = await getTask(id);
@@ -333,10 +351,11 @@ export async function bulkMoveTasks(taskIds: number[], doDate: string | null, do
     await db.update(tasks).set({
       doDate: doDate as any,
       doDateSomeday: doDateSomeday ?? false,
-      doDateToday: false,  // ← always clear when explicitly setting a date
+      doDateToday: false,
     }).where(eq(tasks.id, id));
   }
 }
+
 // ─── Subtasks ────────────────────────────────────────────────────
 
 export async function listSubtasks(taskId: number) {
