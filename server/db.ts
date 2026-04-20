@@ -1,4 +1,4 @@
-import { eq, and, sql, isNull, inArray, asc, desc } from "drizzle-orm";
+import { eq, and, or, sql, isNull, inArray, asc, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   InsertUser, users,
@@ -178,17 +178,18 @@ export async function listTasks(filters?: {
   const db = await getDb();
   const conditions = [];
 
-  if (filters?.doDate === "someday") {
+ if (filters?.doDate === "someday") {
     conditions.push(eq(tasks.doDateSomeday, true));
   } else if (filters?.doDate && filters.doDate !== "all") {
     const isToday = filters.doDate === getTodayStr();
     if (isToday) {
-      // Today: match literal doDate=today OR the perpetual today flag
       conditions.push(
-        sql`(${tasks.doDate}::text = ${filters.doDate} OR ${tasks.doDateToday} = true)`
+        or(
+          eq(tasks.doDateToday, true),
+          sql`${tasks.doDate}::text = ${filters.doDate}`
+        )!
       );
     } else {
-      // Tomorrow or any future date: only match literal doDate
       conditions.push(sql`${tasks.doDate}::text = ${filters.doDate}`);
     }
     conditions.push(eq(tasks.doDateSomeday, false));
