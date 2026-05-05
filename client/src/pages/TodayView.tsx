@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { Sunrise, Sunset, ArrowRight, Plus, X, Check, ChevronRight, Moon, Sun, Filter } from "lucide-react";
+import { Sunrise, Sunset, ArrowRight, Plus, X, Check, Moon, Sun, Filter, RefreshCw } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -36,8 +36,6 @@ interface BrainDumpItem {
   forToday: boolean;
 }
 
-// ─── Shared helpers ─────────────────────────────────────────────
-
 function getQuadrantLabel(isUrgent: boolean, isImportant: boolean) {
   if (isUrgent && isImportant) return "Do Now";
   if (!isUrgent && isImportant) return "Do Later";
@@ -51,8 +49,6 @@ function getQuadrantColor(isUrgent: boolean, isImportant: boolean) {
   if (isUrgent && !isImportant) return "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30";
   return "text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/30";
 }
-
-// ─── Mobile Experience ──────────────────────────────────────────
 
 type MobileScreen = "home" | "braindump" | "sift";
 
@@ -72,6 +68,9 @@ function MobileTodayView() {
     onSuccess: () => { utils.tasks.invalidate(); },
   });
   const toggleTask = trpc.tasks.update.useMutation({
+    onSuccess: () => { utils.tasks.invalidate(); },
+  });
+  const cleanup = trpc.tasks.dailyCleanup.useMutation({
     onSuccess: () => { utils.tasks.invalidate(); },
   });
 
@@ -96,7 +95,7 @@ function MobileTodayView() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-background px-8">
         <h1 className="text-4xl font-bold mb-4">Rhythm</h1>
         <p className="text-xl text-muted-foreground mb-8 text-center">Your morning and evening task rhythm.</p>
-        <a
+        
           href={loginUrl}
           className="h-16 px-10 rounded-2xl bg-primary text-primary-foreground text-xl font-semibold flex items-center justify-center"
         >
@@ -114,10 +113,8 @@ function MobileTodayView() {
     );
   }
 
-  // ── Brain Dump handlers ──
   const addDumpItem = () => {
     if (!dumpInput.trim()) return;
-    // ← isUrgent and isImportant default to true
     setDumpItems(prev => [...prev, { title: dumpInput.trim(), isUrgent: true, isImportant: true, forToday: true }]);
     setDumpInput("");
   };
@@ -137,7 +134,7 @@ function MobileTodayView() {
         title: item.title,
         isUrgent: item.isUrgent,
         isImportant: item.isImportant,
-        doDateToday: item.forToday,       // ← use doDateToday instead of literal date
+        doDateToday: item.forToday,
         doDateSomeday: !item.forToday,
       });
     }
@@ -146,7 +143,6 @@ function MobileTodayView() {
     setScreen("home");
   };
 
-  // ── Evening Sift handlers ──
   const toggleSiftItem = (id: number) => {
     setSiftSelected(prev => {
       const next = new Set(prev);
@@ -165,15 +161,11 @@ function MobileTodayView() {
     setScreen("home");
   };
 
-  // ── Brain Dump Screen ──
   if (screen === "braindump") {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <div className="flex items-center justify-between px-6 py-5 border-b safe-area-top">
-          <button
-            onClick={() => setScreen("home")}
-            className="text-xl text-muted-foreground active:text-foreground py-3 px-2 -ml-2"
-          >
+          <button onClick={() => setScreen("home")} className="text-xl text-muted-foreground active:text-foreground py-3 px-2 -ml-2">
             ← Back
           </button>
           <div className="flex items-center gap-3">
@@ -215,41 +207,26 @@ function MobileTodayView() {
             <div key={idx} className="rounded-2xl border-2 p-6 space-y-5 bg-card">
               <div className="flex items-start justify-between gap-4">
                 <span className="text-xl font-semibold leading-snug flex-1">{item.title}</span>
-                <button
-                  onClick={() => removeDumpItem(idx)}
-                  className="text-muted-foreground active:text-destructive p-3 -m-3 shrink-0"
-                >
+                <button onClick={() => removeDumpItem(idx)} className="text-muted-foreground active:text-destructive p-3 -m-3 shrink-0">
                   <X className="h-7 w-7" />
                 </button>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <button
                   onClick={() => updateDumpItem(idx, "isUrgent", !item.isUrgent)}
-                  className={`h-14 px-6 rounded-2xl text-lg font-semibold transition-all border-2 active:scale-95 ${
-                    item.isUrgent
-                      ? "bg-red-100 dark:bg-red-950/50 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300"
-                      : "bg-background border-border text-muted-foreground"
-                  }`}
+                  className={`h-14 px-6 rounded-2xl text-lg font-semibold transition-all border-2 active:scale-95 ${item.isUrgent ? "bg-red-100 dark:bg-red-950/50 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300" : "bg-background border-border text-muted-foreground"}`}
                 >
                   🔴 Urgent
                 </button>
                 <button
                   onClick={() => updateDumpItem(idx, "isImportant", !item.isImportant)}
-                  className={`h-14 px-6 rounded-2xl text-lg font-semibold transition-all border-2 active:scale-95 ${
-                    item.isImportant
-                      ? "bg-blue-100 dark:bg-blue-950/50 border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-300"
-                      : "bg-background border-border text-muted-foreground"
-                  }`}
+                  className={`h-14 px-6 rounded-2xl text-lg font-semibold transition-all border-2 active:scale-95 ${item.isImportant ? "bg-blue-100 dark:bg-blue-950/50 border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-300" : "bg-background border-border text-muted-foreground"}`}
                 >
                   🔵 Important
                 </button>
                 <button
                   onClick={() => updateDumpItem(idx, "forToday", !item.forToday)}
-                  className={`h-14 px-6 rounded-2xl text-lg font-semibold transition-all border-2 active:scale-95 ${
-                    item.forToday
-                      ? "bg-green-100 dark:bg-green-950/50 border-green-400 dark:border-green-600 text-green-700 dark:text-green-300"
-                      : "bg-background border-border text-muted-foreground"
-                  }`}
+                  className={`h-14 px-6 rounded-2xl text-lg font-semibold transition-all border-2 active:scale-95 ${item.forToday ? "bg-green-100 dark:bg-green-950/50 border-green-400 dark:border-green-600 text-green-700 dark:text-green-300" : "bg-background border-border text-muted-foreground"}`}
                 >
                   {item.forToday ? "📅 Today" : "💭 Someday"}
                 </button>
@@ -270,13 +247,8 @@ function MobileTodayView() {
               disabled={isSubmitting}
               className="w-full h-20 rounded-2xl bg-primary text-primary-foreground text-2xl font-bold flex items-center justify-center gap-4 active:scale-[0.97] transition-transform disabled:opacity-50"
             >
-              {isSubmitting ? (
-                <span>Creating...</span>
-              ) : (
-                <>
-                  <Check className="h-8 w-8" />
-                  Create {dumpItems.length} Task{dumpItems.length !== 1 ? "s" : ""}
-                </>
+              {isSubmitting ? <span>Creating...</span> : (
+                <><Check className="h-8 w-8" />Create {dumpItems.length} Task{dumpItems.length !== 1 ? "s" : ""}</>
               )}
             </button>
           </div>
@@ -285,15 +257,11 @@ function MobileTodayView() {
     );
   }
 
-  // ── Evening Sift Screen ──
   if (screen === "sift") {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <div className="flex items-center justify-between px-6 py-5 border-b safe-area-top">
-          <button
-            onClick={() => setScreen("home")}
-            className="text-xl text-muted-foreground active:text-foreground py-3 px-2 -ml-2"
-          >
+          <button onClick={() => setScreen("home")} className="text-xl text-muted-foreground active:text-foreground py-3 px-2 -ml-2">
             ← Back
           </button>
           <div className="flex items-center gap-3">
@@ -304,9 +272,7 @@ function MobileTodayView() {
         </div>
 
         <div className="px-6 py-5 border-b bg-muted/30">
-          <p className="text-lg text-muted-foreground">
-            Tap tasks you didn't finish to push them to tomorrow.
-          </p>
+          <p className="text-lg text-muted-foreground">Tap tasks you didn't finish to push them to tomorrow.</p>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
@@ -316,28 +282,16 @@ function MobileTodayView() {
               <button
                 key={task.id}
                 onClick={() => toggleSiftItem(task.id)}
-                className={`w-full text-left rounded-2xl border-2 p-6 flex items-center gap-5 transition-all active:scale-[0.97] ${
-                  selected
-                    ? "border-orange-400 dark:border-orange-600 bg-orange-50 dark:bg-orange-950/30"
-                    : "border-border bg-card"
-                }`}
+                className={`w-full text-left rounded-2xl border-2 p-6 flex items-center gap-5 transition-all active:scale-[0.97] ${selected ? "border-orange-400 dark:border-orange-600 bg-orange-50 dark:bg-orange-950/30" : "border-border bg-card"}`}
               >
-                <div className={`h-10 w-10 rounded-full border-3 flex items-center justify-center shrink-0 transition-colors ${
-                  selected
-                    ? "border-orange-500 bg-orange-500 text-white"
-                    : "border-muted-foreground/30"
-                }`}>
+                <div className={`h-10 w-10 rounded-full border-3 flex items-center justify-center shrink-0 transition-colors ${selected ? "border-orange-500 bg-orange-500 text-white" : "border-muted-foreground/30"}`}>
                   {selected && <Check className="h-6 w-6" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className="text-xl font-medium block leading-snug">{task.title}</span>
-                  <span className="text-base text-muted-foreground mt-1 block">
-                    {getQuadrantLabel(task.isUrgent, task.isImportant)}
-                  </span>
+                  <span className="text-base text-muted-foreground mt-1 block">{getQuadrantLabel(task.isUrgent, task.isImportant)}</span>
                 </div>
-                {selected && (
-                  <ArrowRight className="h-7 w-7 text-orange-500 shrink-0" />
-                )}
+                {selected && <ArrowRight className="h-7 w-7 text-orange-500 shrink-0" />}
               </button>
             );
           })}
@@ -364,17 +318,26 @@ function MobileTodayView() {
     );
   }
 
-  // ── Mobile Home Screen ──
+  // Mobile Home Screen
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <div className="flex items-center justify-between px-6 py-5 safe-area-top">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Rhythm</h1>
-        <button
-          onClick={toggleTheme}
-          className="h-12 w-12 rounded-xl flex items-center justify-center text-muted-foreground active:bg-accent transition-colors"
-        >
-          {theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => cleanup.mutate()}
+            disabled={cleanup.isPending}
+            className="h-12 w-12 rounded-xl flex items-center justify-center text-muted-foreground active:bg-accent transition-colors"
+          >
+            <RefreshCw className={`h-5 w-5 ${cleanup.isPending ? "animate-spin" : ""}`} />
+          </button>
+          <button
+            onClick={toggleTheme}
+            className="h-12 w-12 rounded-xl flex items-center justify-center text-muted-foreground active:bg-accent transition-colors"
+          >
+            {theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
 
       <div className="px-6 pb-4">
@@ -383,16 +346,16 @@ function MobileTodayView() {
 
       <div className="px-6 pb-6 space-y-4">
         <button
-            onClick={() => { setDumpItems([]); setDumpInput(""); setScreen("braindump"); }}
-            className="w-full h-24 rounded-3xl bg-yellow-50 dark:bg-yellow-950/30 border-2 border-yellow-200 dark:border-yellow-800 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform"
+          onClick={() => { setDumpItems([]); setDumpInput(""); setScreen("braindump"); }}
+          className="w-full h-24 rounded-3xl bg-yellow-50 dark:bg-yellow-950/30 border-2 border-yellow-200 dark:border-yellow-800 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform"
         >
-            <Sunrise className="h-10 w-10 text-yellow-500" />
-            <span className="text-2xl font-bold text-yellow-700 dark:text-yellow-200">Morning Brain Dump</span>
+          <Sunrise className="h-10 w-10 text-yellow-500" />
+          <span className="text-2xl font-bold text-yellow-700 dark:text-yellow-200">Morning Brain Dump</span>
         </button>
         <button
-            onClick={() => { setSiftSelected(new Set()); setScreen("sift"); }}
-            disabled={incompleteTasks.length === 0}
-            className="w-full h-24 rounded-3xl bg-indigo-50 dark:bg-indigo-950/30 border-2 border-indigo-200 dark:border-indigo-800 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform disabled:opacity-30"
+          onClick={() => { setSiftSelected(new Set()); setScreen("sift"); }}
+          disabled={incompleteTasks.length === 0}
+          className="w-full h-24 rounded-3xl bg-indigo-50 dark:bg-indigo-950/30 border-2 border-indigo-200 dark:border-indigo-800 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform disabled:opacity-30"
         >
           <Sunset className="h-10 w-10 text-indigo-500" />
           <span className="text-2xl font-bold text-indigo-700 dark:text-indigo-200">Evening Sift</span>
@@ -483,6 +446,9 @@ function DesktopTodayView() {
   const createTask = trpc.tasks.create.useMutation({
     onSuccess: () => { utils.tasks.list.invalidate(); },
   });
+  const cleanup = trpc.tasks.dailyCleanup.useMutation({
+    onSuccess: () => { utils.tasks.invalidate(); },
+  });
 
   const [showBrainDump, setShowBrainDump] = useState(false);
   const [dumpItems, setDumpItems] = useState<BrainDumpItem[]>([]);
@@ -508,15 +474,10 @@ function DesktopTodayView() {
   const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
   const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
 
-  const handleOpenBrainDump = () => {
-    setDumpItems([]);
-    setDumpInput("");
-    setShowBrainDump(true);
-  };
+  const handleOpenBrainDump = () => { setDumpItems([]); setDumpInput(""); setShowBrainDump(true); };
 
   const addDumpItem = () => {
     if (!dumpInput.trim()) return;
-    // ← isUrgent and isImportant default to true
     setDumpItems(prev => [...prev, { title: dumpInput.trim(), isUrgent: true, isImportant: true, forToday: true }]);
     setDumpInput("");
   };
@@ -535,7 +496,7 @@ function DesktopTodayView() {
         title: item.title,
         isUrgent: item.isUrgent,
         isImportant: item.isImportant,
-        doDateToday: item.forToday,       // ← use doDateToday instead of literal date
+        doDateToday: item.forToday,
         doDateSomeday: !item.forToday,
       });
     }
@@ -543,10 +504,7 @@ function DesktopTodayView() {
     setDumpItems([]);
   };
 
-  const handleEveningSift = () => {
-    setSiftSelected(new Set());
-    setShowEveningSift(true);
-  };
+  const handleEveningSift = () => { setSiftSelected(new Set()); setShowEveningSift(true); };
 
   const handlePushToTomorrow = () => {
     const ids = Array.from(siftSelected);
@@ -587,6 +545,10 @@ function DesktopTodayView() {
             <Sunset className="h-4 w-4" />
             Evening Sift
           </Button>
+          <Button variant="outline" onClick={() => cleanup.mutate()} disabled={cleanup.isPending} className="gap-1.5 h-9 px-3 text-sm">
+            <RefreshCw className={`h-4 w-4 ${cleanup.isPending ? "animate-spin" : ""}`} />
+            Clean Up
+          </Button>
         </div>
       </div>
 
@@ -624,12 +586,7 @@ function DesktopTodayView() {
           </SelectContent>
         </Select>
         {(filterAreaId !== null || filterProjectId !== null) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2 text-xs text-muted-foreground"
-            onClick={() => { setFilterAreaId(null); setFilterProjectId(null); }}
-          >
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={() => { setFilterAreaId(null); setFilterProjectId(null); }}>
             <X className="h-3 w-3 mr-1" />
             Clear
           </Button>
@@ -780,8 +737,6 @@ function DesktopTodayView() {
     </div>
   );
 }
-
-// ─── Main Export ─────────────────────────────────────────────────
 
 export default function TodayView() {
   const isMobile = useIsMobile();
