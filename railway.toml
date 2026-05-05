@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 
 
 [build.nixpacksPlan.phases.setup]
-nixPkgs = ["nodejs", "pnpm"]
+nixPkgs = ["nodejs_22", "pnpm"]
 
 [build.nixpacksPlan.phases.install]
 cmds = ["pnpm install --no-frozen-lockfile"]
