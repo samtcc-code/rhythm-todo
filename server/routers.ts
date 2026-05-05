@@ -212,6 +212,12 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return db.bulkMoveTasks(input.taskIds, input.doDate, input.doDateSomeday);
       }),
+
+    // ─── Clean up ──────────────────────────────────────────────────
+    dailyCleanup: protectedProcedure
+      .mutation(async () => {
+        return db.dailyCleanup();
+      }),
   }),
 
   // ─── Subtasks ──────────────────────────────────────────────────
@@ -241,11 +247,3 @@ export const appRouter = router({
 });
 
 export type AppRouter = typeof appRouter;
-
-  // ─── Clean up ──────────────────────────────────────────────────
-
-dailyCleanup: protectedProcedure
-  .mutation(async () => {
-    return db.dailyCleanup();
-  }),
-
