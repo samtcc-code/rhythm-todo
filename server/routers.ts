@@ -241,3 +241,11 @@ export const appRouter = router({
 });
 
 export type AppRouter = typeof appRouter;
+
+  // ─── Clean up ──────────────────────────────────────────────────
+
+dailyCleanup: protectedProcedure
+  .mutation(async () => {
+    return db.dailyCleanup();
+  }),
+
