@@ -390,3 +390,13 @@ export async function getTaskTagIds(taskId: number): Promise<number[]> {
   const rows = await db.select({ tagId: taskTags.tagId }).from(taskTags).where(eq(taskTags.taskId, taskId));
   return rows.map(r => r.tagId);
 }
+
+// ─── Clean Up function ───────────────────────────────────────────────────
+
+export async function dailyCleanup() {
+  const database = await getDb();
+  await database.execute(sql`UPDATE tasks SET "doDateToday" = false WHERE "doDateToday" = true AND "doDate" > CURRENT_DATE`);
+  await database.execute(sql`UPDATE tasks SET "doDateSomeday" = false WHERE "doDateToday" = true AND "doDateSomeday" = true`);
+  await database.execute(sql`UPDATE tasks SET "doDate" = CURRENT_DATE WHERE "isDone" = false AND "doDateToday" = true AND ("doDate" != CURRENT_DATE OR "doDate" IS NULL)`);
+  await database.execute(sql`UPDATE tasks SET "doDate" = CURRENT_DATE WHERE "isDone" = false AND "doDateSomeday" = false AND "doDateToday" = false AND "doDate" < CURRENT_DATE`);
+}
