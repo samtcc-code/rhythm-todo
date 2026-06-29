@@ -13,6 +13,9 @@ interface TaskItemProps {
   projects?: { id: number; name: string }[];
   dragHandleProps?: Record<string, unknown>;
   hideDoDate?: boolean;
+  selectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 function quadrantLabel(q: string) {
@@ -89,20 +92,60 @@ export default function TaskItem({
   projects,
   dragHandleProps,
   hideDoDate = false,
+  selectMode = false,
+  isSelected = false,
+  onToggleSelect,
 }: TaskItemProps) {
   const ownerName = users?.find(u => u.id === task.ownerId)?.name;
   const areaName = areas?.find(a => a.id === task.areaId)?.name;
   const projectName = projects?.find(p => p.id === task.projectId)?.name;
   const doDateStr = hideDoDate ? null : task.doDateSomeday ? "Someday" : task.doDateToday ? "Today" : task.doDate ? formatDate(task.doDate) : null;
 
+  const handleRowClick = () => {
+    if (selectMode && onToggleSelect) {
+      onToggleSelect();
+    } else {
+      onClick();
+    }
+  };
+
   return (
     <div
       className={cn(
         "group flex items-center gap-4 md:gap-2 px-4 md:px-3 py-5 md:py-2.5 rounded-xl md:rounded-lg transition-colors hover:bg-accent/50 cursor-pointer border border-transparent active:bg-accent/70",
-        task.isDone && "opacity-50"
+        task.isDone && "opacity-50",
+        isSelected && "bg-primary/5 border-primary/40 hover:bg-primary/10"
       )}
-      onClick={onClick}
+      onClick={handleRowClick}
     >
+      {/* Multi-select checkbox: hover-visible normally, always visible in select mode */}
+      {onToggleSelect && (
+        <div
+          className={cn(
+            "shrink-0 hidden md:flex items-center justify-center transition-opacity",
+            selectMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}
+          onClick={e => e.stopPropagation()}
+        >
+          <button
+            onClick={e => { e.stopPropagation(); onToggleSelect(); }}
+            className={cn(
+              "h-[16px] w-[16px] rounded border-2 shrink-0 flex items-center justify-center transition-all",
+              isSelected
+                ? "bg-primary border-primary"
+                : "border-muted-foreground/40 bg-transparent hover:border-primary"
+            )}
+            aria-label={isSelected ? "Deselect task" : "Select task"}
+          >
+            {isSelected && (
+              <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
+                <path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Drag handle */}
       {dragHandleProps && (
         <div

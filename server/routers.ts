@@ -213,6 +213,50 @@ export const appRouter = router({
         return db.bulkMoveTasks(input.taskIds, input.doDate, input.doDateSomeday);
       }),
 
+    bulkUpdate: protectedProcedure
+      .input(z.object({
+        taskIds: z.array(z.number()).min(1),
+        isDone: z.boolean().optional(),
+        isUrgent: z.boolean().optional(),
+        isImportant: z.boolean().optional(),
+        doDate: z.string().nullable().optional(),
+        doDateSomeday: z.boolean().optional(),
+        doDateToday: z.boolean().optional(),
+        dueDate: z.string().nullable().optional(),
+        ownerId: z.number().nullable().optional(),
+        areaId: z.number().nullable().optional(),
+        projectId: z.number().nullable().optional(),
+        tagIds: z.array(z.number()).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { taskIds, ...data } = input;
+        for (const id of taskIds) {
+          const perTask = { ...data };
+          if (
+            perTask.doDate !== undefined &&
+            perTask.doDate !== null &&
+            perTask.doDate > todayString() &&
+            perTask.isUrgent === undefined &&
+            perTask.isImportant === undefined
+          ) {
+            const current = await db.getTask(id);
+            if (current?.isUrgent && current?.isImportant) {
+              perTask.isUrgent = false;
+              perTask.doDateToday = false;
+            }
+          }
+          await db.updateTask(id, perTask);
+        }
+      }),
+
+    bulkDelete: protectedProcedure
+      .input(z.object({ taskIds: z.array(z.number()).min(1) }))
+      .mutation(async ({ input }) => {
+        for (const id of input.taskIds) {
+          await db.deleteTask(id);
+        }
+      }),
+
     // ─── Clean up ──────────────────────────────────────────────────
     dailyCleanup: protectedProcedure
       .mutation(async () => {

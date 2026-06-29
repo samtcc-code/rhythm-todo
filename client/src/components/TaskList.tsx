@@ -1,7 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import TaskItem from "./TaskItem";
 import TaskDetailPanel from "./TaskDetailPanel";
+import BulkActionBar from "./BulkActionBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
@@ -39,13 +41,44 @@ export default function TaskList({
 }: TaskListProps) {
   const utils = trpc.useUtils();
   const { showUndo } = useUndoToast();
+  const [location] = useLocation();
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showCreate, setShowCreate] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const handleDragRef = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const selectMode = selectedIds.size > 0;
+
+  const toggleSelect = useCallback((id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    setSelectedTaskId(null);
+  }, []);
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  // Clear selection when navigating between views
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [location]);
+
+  // Drop selections of tasks that disappear from the list
+  useEffect(() => {
+    setSelectedIds(prev => {
+      if (prev.size === 0) return prev;
+      const present = new Set(tasks.map(t => t.id));
+      const kept = Array.from(prev).filter(id => present.has(id));
+      return kept.length === prev.size ? prev : new Set(kept);
+    });
+  }, [tasks]);
 
   const createTask = trpc.tasks.create.useMutation({
     onSuccess: () => { utils.tasks.invalidate(); setNewTitle(""); setShowCreate(false); },
@@ -150,6 +183,16 @@ export default function TaskList({
 
   return (
     <div>
+      {selectMode && (
+        <BulkActionBar
+          taskIds={Array.from(selectedIds)}
+          users={users}
+          areas={areas}
+          projects={projects}
+          onClear={clearSelection}
+        />
+      )}
+
       {tasks.length === 0 && !showCreate && (
         <div className="text-center py-16 md:py-12 text-muted-foreground">
           <p className="text-base md:text-sm">{emptyMessage}</p>
@@ -159,7 +202,7 @@ export default function TaskList({
       <div className="space-y-1 md:space-y-0.5">
         {tasks.map((task, idx) => (
           <div key={task.id}>
-            {selectedTaskId === task.id ? (
+            {selectedTaskId === task.id && !selectMode ? (
               <div ref={panelRef}>
                 <TaskDetailPanel
                   taskId={task.id}
@@ -177,7 +220,7 @@ export default function TaskList({
               </div>
             ) : (
               <div
-                draggable
+                draggable={!selectMode}
                 onDragStart={e => handleDragStart(e, idx)}
                 onDragOver={e => handleDragOver(e, idx)}
                 onDrop={() => handleDrop(idx)}
@@ -198,6 +241,9 @@ export default function TaskList({
                   projects={projects}
                   dragHandleProps={makeDragHandleProps()}
                   hideDoDate={hideDoDate}
+                  selectMode={selectMode}
+                  isSelected={selectedIds.has(task.id)}
+                  onToggleSelect={() => toggleSelect(task.id)}
                 />
               </div>
             )}
