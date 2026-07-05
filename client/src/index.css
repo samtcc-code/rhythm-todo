@@ -47,13 +47,20 @@
    Everything else (typography, spacing, frosted-glass, radii) stays the same.
    ═══════════════════════════════════════════════════════════════════════ */
 :root {
-  --theme-accent: oklch(0.55 0.18 255);          /* Primary buttons, links, focus rings */
-  --theme-bg-from: #d3f6ff;                       /* Page background gradient — top-left */
-  --theme-bg-to:   #fff9cf;                       /* Page background gradient — bottom-right */
-  --theme-tint:    rgba(211, 246, 255, 0.5);      /* Soft accent surfaces (light mode only) */
+  /* Overall look */
+  --theme-accent:      #2D878B;                     /* Primary buttons, links, focus rings */
+  --theme-bg-from:     #3CB7B9;                     /* Page background gradient — top-left */
+  --theme-bg-to:       #3CB7B9;                     /* Page background gradient — bottom-right */
+  --theme-tint:        rgba(211, 246, 255, 0.5);    /* Soft accent surfaces (light mode only) */
+
+  /* Mobile action buttons (background/border/text derived from these) */
+  --theme-braindump:   #C7D66D;                     /* Morning Brain Dump */
+  --theme-sift:        #6DC9CA;                     /* Evening Sift button */
+  --theme-cleanup:     #8BAAAD;                     /* Clean Up */
+  --theme-selection:   #ea580c;                     /* Sift selection + Sunset icon + Push button */
 }
 .dark {
-  --theme-accent: oklch(0.65 0.18 255);          /* Slightly brighter accent for dark mode */
+  --theme-accent:      #35A0A2;                     /* Slightly brighter accent for dark mode */
 }
 /* ═══════════════════════════════════════════════════════════════════════ */
 
@@ -191,6 +198,19 @@
   }
   .safe-area-bottom {
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  }
+
+  /* Mobile action buttons: bg + border derived from --btn (set inline).
+     Works in both light/dark via color-mix with transparent. */
+  .theme-btn-tinted {
+    background: color-mix(in srgb, var(--btn) 12%, transparent);
+    border-color: color-mix(in srgb, var(--btn) 45%, transparent);
+    color: var(--btn);
+  }
+  .theme-btn-solid {
+    background: var(--btn);
+    color: white;
+    border-color: var(--btn);
   }
 }
 
