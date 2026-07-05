@@ -169,7 +169,7 @@ function MobileTodayView() {
             ← Back
           </button>
           <div className="flex items-center gap-3">
-            <Sunrise className="h-7 w-7 text-amber-500" />
+            <Sunrise className="h-7 w-7" style={{ color: "var(--theme-braindump)" }} />
             <span className="text-2xl font-bold">Brain Dump</span>
           </div>
           <div className="w-20" />
@@ -265,7 +265,7 @@ function MobileTodayView() {
             ← Back
           </button>
           <div className="flex items-center gap-3">
-            <Sunset className="h-7 w-7 text-orange-500" />
+            <Sunset className="h-7 w-7" style={{ color: "var(--theme-selection)" }} />
             <span className="text-2xl font-bold">Evening Sift</span>
           </div>
           <div className="w-20" />
@@ -282,16 +282,22 @@ function MobileTodayView() {
               <button
                 key={task.id}
                 onClick={() => toggleSiftItem(task.id)}
-                className={`w-full text-left rounded-2xl border-2 p-6 flex items-center gap-5 transition-all active:scale-[0.97] ${selected ? "border-orange-400 dark:border-orange-600 bg-orange-50 dark:bg-orange-950/30" : "border-border bg-card"}`}
+                className={`w-full text-left rounded-2xl border-2 p-6 flex items-center gap-5 transition-all active:scale-[0.97] ${selected ? "theme-btn-tinted" : "border-border bg-card"}`}
+                style={selected ? { ["--btn" as string]: "var(--theme-selection)", color: "inherit" } : undefined}
               >
-                <div className={`h-10 w-10 rounded-full border-3 flex items-center justify-center shrink-0 transition-colors ${selected ? "border-orange-500 bg-orange-500 text-white" : "border-muted-foreground/30"}`}>
+                <div
+                  className="h-10 w-10 rounded-full border-3 flex items-center justify-center shrink-0 transition-colors"
+                  style={selected
+                    ? { background: "var(--theme-selection)", borderColor: "var(--theme-selection)", color: "white" }
+                    : { borderColor: "color-mix(in srgb, currentColor 30%, transparent)" }}
+                >
                   {selected && <Check className="h-6 w-6" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className="text-xl font-medium block leading-snug">{task.title}</span>
                   <span className="text-base text-muted-foreground mt-1 block">{getQuadrantLabel(task.isUrgent, task.isImportant)}</span>
                 </div>
-                {selected && <ArrowRight className="h-7 w-7 text-orange-500 shrink-0" />}
+                {selected && <ArrowRight className="h-7 w-7 shrink-0" style={{ color: "var(--theme-selection)" }} />}
               </button>
             );
           })}
@@ -308,7 +314,8 @@ function MobileTodayView() {
           <button
             onClick={handlePushToTomorrow}
             disabled={siftSelected.size === 0}
-            className="w-full h-20 rounded-2xl bg-orange-500 text-white text-2xl font-bold flex items-center justify-center gap-4 active:scale-[0.97] transition-transform disabled:opacity-30"
+            className="theme-btn-solid w-full h-20 rounded-2xl text-2xl font-bold flex items-center justify-center gap-4 active:scale-[0.97] transition-transform disabled:opacity-30"
+            style={{ ["--btn" as string]: "var(--theme-selection)" }}
           >
             <Sunset className="h-8 w-8" />
             Push {siftSelected.size} to Tomorrow
@@ -339,35 +346,38 @@ function MobileTodayView() {
       <div className="px-6 pb-6 space-y-4">
         <button
           onClick={() => { setDumpItems([]); setDumpInput(""); setScreen("braindump"); }}
-          className="w-full h-24 rounded-3xl bg-yellow-50 dark:bg-yellow-950/30 border-2 border-yellow-200 dark:border-yellow-800 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform"
+          className="theme-btn-tinted w-full h-24 rounded-3xl border-2 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform"
+          style={{ ["--btn" as string]: "var(--theme-braindump)" }}
         >
-          <Sunrise className="h-10 w-10 text-yellow-500" />
-          <span className="text-2xl font-bold text-yellow-700 dark:text-yellow-200">Morning Brain Dump</span>
+          <Sunrise className="h-10 w-10" />
+          <span className="text-2xl font-bold">Morning Brain Dump</span>
         </button>
         <button
           onClick={() => { setSiftSelected(new Set()); setScreen("sift"); }}
-          className="w-full h-24 rounded-3xl bg-indigo-50 dark:bg-indigo-950/30 border-2 border-indigo-200 dark:border-indigo-800 flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform"
+          className="theme-btn-tinted w-full h-24 rounded-3xl border-2 flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform"
+          style={{ ["--btn" as string]: "var(--theme-sift)" }}
         >
           <div className="flex items-center gap-4">
-            <Sunset className="h-10 w-10 text-indigo-500" />
-            <span className="text-2xl font-bold text-indigo-700 dark:text-indigo-200">Evening Sift</span>
+            <Sunset className="h-10 w-10" />
+            <span className="text-2xl font-bold">Evening Sift</span>
           </div>
           {incompleteTasks.length === 0 && (
-            <span className="text-sm text-indigo-600/70 dark:text-indigo-300/70">Nothing to sift — you're clear</span>
+            <span className="text-sm opacity-70">Nothing to sift — you're clear</span>
           )}
         </button>
         <button
           onClick={() => cleanup.mutate()}
           disabled={cleanup.isPending}
-          className="w-full h-24 rounded-3xl bg-slate-50 dark:bg-slate-900/40 border-2 border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform disabled:opacity-60"
+          className="theme-btn-tinted w-full h-24 rounded-3xl border-2 flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform disabled:opacity-60"
+          style={{ ["--btn" as string]: "var(--theme-cleanup)" }}
         >
           <div className="flex items-center gap-4">
-            <RefreshCw className={`h-10 w-10 text-slate-500 ${cleanup.isPending ? "animate-spin" : ""}`} />
-            <span className="text-2xl font-bold text-slate-700 dark:text-slate-200">
+            <RefreshCw className={`h-10 w-10 ${cleanup.isPending ? "animate-spin" : ""}`} />
+            <span className="text-2xl font-bold">
               {cleanup.isPending ? "Cleaning…" : "Clean Up"}
             </span>
           </div>
-          <span className="text-sm text-slate-600/70 dark:text-slate-300/70">Roll forward stale dates</span>
+          <span className="text-sm opacity-70">Roll forward stale dates</span>
         </button>
       </div>
 
