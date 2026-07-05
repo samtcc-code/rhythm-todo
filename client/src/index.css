@@ -48,19 +48,19 @@
    ═══════════════════════════════════════════════════════════════════════ */
 :root {
   /* Overall look */
-  --theme-accent:      oklch(0.55 0.18 255);       /* Primary buttons, links, focus rings */
-  --theme-bg-from:     #d3f6ff;                     /* Page background gradient — top-left */
-  --theme-bg-to:       #fff9cf;                     /* Page background gradient — bottom-right */
+  --theme-accent:      #2D878B;                     /* Primary buttons, links, focus rings */
+  --theme-bg-from:     #3CB7B9;                     /* Page background gradient — top-left */
+  --theme-bg-to:       #3CB7B9;                     /* Page background gradient — bottom-right */
   --theme-tint:        rgba(211, 246, 255, 0.5);    /* Soft accent surfaces (light mode only) */
 
   /* Mobile action buttons (background/border/text derived from these) */
-  --theme-braindump:   #ca8a04;                     /* Morning Brain Dump  — yellow */
-  --theme-sift:        #4f46e5;                     /* Evening Sift button — indigo */
-  --theme-cleanup:     #475569;                     /* Clean Up            — slate */
-  --theme-selection:   #ea580c;                     /* Sift selection + Sunset icon + Push button — orange */
+  --theme-braindump:   #C7D66D;                     /* Morning Brain Dump */
+  --theme-sift:        #6DC9CA;                     /* Evening Sift button */
+  --theme-cleanup:     #8BAAAD;                     /* Clean Up */
+  --theme-selection:   #ea580c;                     /* Sift selection + Sunset icon + Push button */
 }
 .dark {
-  --theme-accent:      oklch(0.65 0.18 255);       /* Slightly brighter accent for dark mode */
+  --theme-accent:      #35A0A2;                     /* Slightly brighter accent for dark mode */
 }
 /* ═══════════════════════════════════════════════════════════════════════ */
 
