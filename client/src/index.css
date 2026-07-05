@@ -48,15 +48,15 @@
    ═══════════════════════════════════════════════════════════════════════ */
 :root {
   /* Overall look */
-  --theme-accent:      #2D878B;                     /* Primary buttons, links, focus rings */
-  --theme-bg-from:     #3CB7B9;                     /* Page background gradient — top-left */
-  --theme-bg-to:       #3CB7B9;                     /* Page background gradient — bottom-right */
-  --theme-tint:        rgba(211, 246, 255, 0.5);    /* Soft accent surfaces (light mode only) */
+  --theme-accent:      #0B4C50;                     /* Primary buttons, links, focus rings — deep navy-teal for contrast on teal bg */
+  --theme-bg-from:     #3CB7B9;                     /* Page background — top-left */
+  --theme-bg-to:       #3CB7B9;                     /* Page background — bottom-right (solid teal) */
+  --theme-tint:        rgba(255, 255, 255, 0.18);   /* Soft accent surfaces — semi-white for teal bg */
 
   /* Mobile action buttons (background/border/text derived from these) */
-  --theme-braindump:   #C7D66D;                     /* Morning Brain Dump */
-  --theme-sift:        #6DC9CA;                     /* Evening Sift button */
-  --theme-cleanup:     #8BAAAD;                     /* Clean Up */
+  --theme-braindump:   #F5C242;                     /* Morning Brain Dump — sunrise gold */
+  --theme-sift:        #6BC8C9;                     /* Evening Sift — mid teal */
+  --theme-cleanup:     #A5DDDD;                     /* Clean Up — soft teal (recedes) */
   --theme-selection:   #ea580c;                     /* Sift selection + Sunset icon + Push button */
 }
 .dark {
