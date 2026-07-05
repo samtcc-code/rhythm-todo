@@ -42,11 +42,26 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   THEME PALETTE — edit these to refresh the look.
+   Everything else (typography, spacing, frosted-glass, radii) stays the same.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  --theme-accent: oklch(0.55 0.18 255);          /* Primary buttons, links, focus rings */
+  --theme-bg-from: #d3f6ff;                       /* Page background gradient — top-left */
+  --theme-bg-to:   #fff9cf;                       /* Page background gradient — bottom-right */
+  --theme-tint:    rgba(211, 246, 255, 0.5);      /* Soft accent surfaces (light mode only) */
+}
+.dark {
+  --theme-accent: oklch(0.65 0.18 255);          /* Slightly brighter accent for dark mode */
+}
+/* ═══════════════════════════════════════════════════════════════════════ */
+
 /* Things 3 inspired light theme — clean whites, subtle grays, blue accents */
 :root {
-  --primary: oklch(0.55 0.18 255);
+  --primary: var(--theme-accent);
   --primary-foreground: oklch(0.99 0 0);
-  --sidebar-primary: oklch(0.55 0.18 255);
+  --sidebar-primary: var(--theme-accent);
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --chart-1: oklch(0.65 0.15 255);
   --chart-2: oklch(0.55 0.18 255);
@@ -64,26 +79,26 @@
   --secondary-foreground: oklch(0.35 0.015 250);
   --muted: rgba(255, 255, 255, 0.4);
   --muted-foreground: oklch(0.5 0.015 250);
-  --accent: rgba(211, 246, 255, 0.5);
+  --accent: var(--theme-tint);
   --accent-foreground: oklch(0.18 0.01 250);
   --destructive: oklch(0.58 0.22 25);
   --destructive-foreground: oklch(0.99 0 0);
   --border: rgba(255, 255, 255, 0.5);
   --input: rgba(255, 255, 255, 0.6);
-  --ring: oklch(0.55 0.18 255);
+  --ring: var(--theme-accent);
   --sidebar: rgba(255, 255, 255, 0.45);
   --sidebar-foreground: oklch(0.25 0.01 250);
-  --sidebar-accent: rgba(211, 246, 255, 0.5);
+  --sidebar-accent: var(--theme-tint);
   --sidebar-accent-foreground: oklch(0.18 0.01 250);
   --sidebar-border: rgba(255, 255, 255, 0.3);
-  --sidebar-ring: oklch(0.55 0.18 255);
+  --sidebar-ring: var(--theme-accent);
 }
 
 /* Dark mode — deep charcoal, soft whites, blue accents */
 .dark {
-  --primary: oklch(0.65 0.18 255);
+  --primary: var(--theme-accent);
   --primary-foreground: oklch(0.99 0 0);
-  --sidebar-primary: oklch(0.65 0.18 255);
+  --sidebar-primary: var(--theme-accent);
   --sidebar-primary-foreground: oklch(0.99 0 0);
   --background: oklch(0.15 0.01 260);
   --foreground: oklch(0.9 0.005 250);
@@ -101,7 +116,7 @@
   --destructive-foreground: oklch(0.99 0 0);
   --border: oklch(0.28 0.01 260);
   --input: oklch(0.28 0.01 260);
-  --ring: oklch(0.65 0.18 255);
+  --ring: var(--theme-accent);
   --chart-1: oklch(0.65 0.15 255);
   --chart-2: oklch(0.55 0.18 255);
   --chart-3: oklch(0.45 0.18 255);
@@ -112,7 +127,7 @@
   --sidebar-accent: oklch(0.25 0.015 260);
   --sidebar-accent-foreground: oklch(0.95 0.005 250);
   --sidebar-border: oklch(0.28 0.01 260);
-  --sidebar-ring: oklch(0.65 0.18 255);
+  --sidebar-ring: var(--theme-accent);
 }
 
 @layer base {
@@ -126,7 +141,7 @@
 
   body {
     min-height: 100vh;
-    background: linear-gradient(135deg, #d3f6ff 0%, #fff9cf 100%);
+    background: linear-gradient(135deg, var(--theme-bg-from) 0%, var(--theme-bg-to) 100%);
     background-attachment: fixed;
     @apply text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -167,6 +182,15 @@
   input[type="checkbox"]:not(:disabled),
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
+  }
+}
+
+@layer utilities {
+  .safe-area-top {
+    padding-top: max(1.25rem, env(safe-area-inset-top));
+  }
+  .safe-area-bottom {
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
   }
 }
 

@@ -323,21 +323,13 @@ function MobileTodayView() {
     <div className="min-h-screen flex flex-col bg-background">
       <div className="flex items-center justify-between px-6 py-5 safe-area-top">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Rhythm</h1>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => cleanup.mutate()}
-            disabled={cleanup.isPending}
-            className="h-12 w-12 rounded-xl flex items-center justify-center text-muted-foreground active:bg-accent transition-colors"
-          >
-            <RefreshCw className={`h-5 w-5 ${cleanup.isPending ? "animate-spin" : ""}`} />
-          </button>
-          <button
-            onClick={toggleTheme}
-            className="h-12 w-12 rounded-xl flex items-center justify-center text-muted-foreground active:bg-accent transition-colors"
-          >
-            {theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
-          </button>
-        </div>
+        <button
+          onClick={toggleTheme}
+          className="h-12 w-12 rounded-xl flex items-center justify-center text-muted-foreground active:bg-accent transition-colors"
+          aria-label="Toggle theme"
+        >
+          {theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+        </button>
       </div>
 
       <div className="px-6 pb-4">
@@ -354,11 +346,28 @@ function MobileTodayView() {
         </button>
         <button
           onClick={() => { setSiftSelected(new Set()); setScreen("sift"); }}
-          disabled={incompleteTasks.length === 0}
-          className="w-full h-24 rounded-3xl bg-indigo-50 dark:bg-indigo-950/30 border-2 border-indigo-200 dark:border-indigo-800 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform disabled:opacity-30"
+          className="w-full h-24 rounded-3xl bg-indigo-50 dark:bg-indigo-950/30 border-2 border-indigo-200 dark:border-indigo-800 flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform"
         >
-          <Sunset className="h-10 w-10 text-indigo-500" />
-          <span className="text-2xl font-bold text-indigo-700 dark:text-indigo-200">Evening Sift</span>
+          <div className="flex items-center gap-4">
+            <Sunset className="h-10 w-10 text-indigo-500" />
+            <span className="text-2xl font-bold text-indigo-700 dark:text-indigo-200">Evening Sift</span>
+          </div>
+          {incompleteTasks.length === 0 && (
+            <span className="text-sm text-indigo-600/70 dark:text-indigo-300/70">Nothing to sift — you're clear</span>
+          )}
+        </button>
+        <button
+          onClick={() => cleanup.mutate()}
+          disabled={cleanup.isPending}
+          className="w-full h-24 rounded-3xl bg-slate-50 dark:bg-slate-900/40 border-2 border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform disabled:opacity-60"
+        >
+          <div className="flex items-center gap-4">
+            <RefreshCw className={`h-10 w-10 text-slate-500 ${cleanup.isPending ? "animate-spin" : ""}`} />
+            <span className="text-2xl font-bold text-slate-700 dark:text-slate-200">
+              {cleanup.isPending ? "Cleaning…" : "Clean Up"}
+            </span>
+          </div>
+          <span className="text-sm text-slate-600/70 dark:text-slate-300/70">Roll forward stale dates</span>
         </button>
       </div>
 
