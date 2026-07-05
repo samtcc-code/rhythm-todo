@@ -199,9 +199,8 @@ function DashboardLayoutContent({
     return location === path;
   };
 
-  // py-2.5 for nav items matches the visual weight of section items with their headers
   const navBtn = (active: boolean) =>
-    `flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm transition-colors text-left ${
+    `flex items-center gap-3 w-full px-3 py-3 rounded-md text-sm transition-colors text-left ${
       active ? "bg-white/50 text-primary font-medium" : "text-foreground/80 hover:bg-white/30 hover:text-foreground"
     }`;
 
@@ -242,22 +241,24 @@ function DashboardLayoutContent({
             <div className="flex flex-col px-2 py-2">
 
               {/* Nav items */}
-              {navItems.map(item => {
-                const active = isActive(item.path);
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
-                    className={isCollapsed
-                      ? `flex items-center justify-center w-full p-2 rounded-md transition-colors ${active ? "bg-white/50 text-primary" : "text-foreground/80 hover:bg-white/30"}`
-                      : navBtn(active)
-                    }
-                  >
-                    <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                    {!isCollapsed && <span>{item.label}</span>}
-                  </button>
-                );
-              })}
+              <div className="space-y-1">
+                {navItems.map(item => {
+                  const active = isActive(item.path);
+                  return (
+                    <button
+                      key={item.path}
+                      onClick={() => { setLocation(item.path); if (isMobile) toggleSidebar(); }}
+                      className={isCollapsed
+                        ? `flex items-center justify-center w-full p-2 rounded-md transition-colors ${active ? "bg-white/50 text-primary" : "text-foreground/80 hover:bg-white/30"}`
+                        : navBtn(active)
+                      }
+                    >
+                      <item.icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                      {!isCollapsed && <span>{item.label}</span>}
+                    </button>
+                  );
+                })}
+              </div>
 
               {!isCollapsed && (
                 <>
