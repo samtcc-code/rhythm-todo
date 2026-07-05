@@ -200,12 +200,17 @@
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
   }
 
-  /* Mobile action buttons: bg + border derived from --btn (set inline).
-     Works in both light/dark via color-mix with transparent. */
+  /* Mobile action buttons: white-tinted card with knob color as border/icon
+     and dark navy for the label. Legible on saturated backgrounds. */
   .theme-btn-tinted {
-    background: color-mix(in srgb, var(--btn) 12%, transparent);
-    border-color: color-mix(in srgb, var(--btn) 45%, transparent);
-    color: var(--btn);
+    background: rgba(255, 255, 255, 0.75);
+    border-color: var(--btn);
+    color: var(--theme-accent);
+  }
+  .dark .theme-btn-tinted {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--btn);
+    color: #E5F4F5;
   }
   .theme-btn-solid {
     background: var(--btn);

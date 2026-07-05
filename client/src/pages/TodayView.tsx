@@ -165,7 +165,7 @@ function MobileTodayView() {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <div className="flex items-center justify-between px-6 py-5 border-b safe-area-top">
-          <button onClick={() => setScreen("home")} className="text-xl text-muted-foreground active:text-foreground py-3 px-2 -ml-2">
+          <button onClick={() => setScreen("home")} className="text-xl text-foreground/80 active:text-foreground py-3 px-2 -ml-2">
             ← Back
           </button>
           <div className="flex items-center gap-3">
@@ -197,10 +197,10 @@ function MobileTodayView() {
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           {dumpItems.length === 0 && (
-            <div className="text-center py-20 text-muted-foreground">
-              <Sunrise className="h-16 w-16 mx-auto mb-4 opacity-30" />
+            <div className="text-center py-20 text-foreground/80">
+              <Sunrise className="h-16 w-16 mx-auto mb-4 opacity-40" />
               <p className="text-2xl font-medium">Type a thought and tap +</p>
-              <p className="text-lg mt-3 opacity-70">Capture everything first, organize after.</p>
+              <p className="text-lg mt-3 opacity-75">Capture everything first, organize after.</p>
             </div>
           )}
           {dumpItems.map((item, idx) => (
@@ -261,7 +261,7 @@ function MobileTodayView() {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <div className="flex items-center justify-between px-6 py-5 border-b safe-area-top">
-          <button onClick={() => setScreen("home")} className="text-xl text-muted-foreground active:text-foreground py-3 px-2 -ml-2">
+          <button onClick={() => setScreen("home")} className="text-xl text-foreground/80 active:text-foreground py-3 px-2 -ml-2">
             ← Back
           </button>
           <div className="flex items-center gap-3">
@@ -271,8 +271,8 @@ function MobileTodayView() {
           <div className="w-20" />
         </div>
 
-        <div className="px-6 py-5 border-b bg-muted/30">
-          <p className="text-lg text-muted-foreground">Tap tasks you didn't finish to push them to tomorrow.</p>
+        <div className="px-6 py-5 border-b bg-white/50">
+          <p className="text-lg text-foreground/85">Tap tasks you didn't finish to push them to tomorrow.</p>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-3">
@@ -302,10 +302,10 @@ function MobileTodayView() {
             );
           })}
           {incompleteTasks.length === 0 && (
-            <div className="text-center py-20 text-muted-foreground">
-              <Check className="h-16 w-16 mx-auto mb-4 opacity-30" />
+            <div className="text-center py-20 text-foreground/80">
+              <Check className="h-16 w-16 mx-auto mb-4 opacity-40" />
               <p className="text-2xl font-medium">All tasks are done!</p>
-              <p className="text-lg mt-3 opacity-70">Nothing to push to tomorrow.</p>
+              <p className="text-lg mt-3 opacity-75">Nothing to push to tomorrow.</p>
             </div>
           )}
         </div>
@@ -332,7 +332,7 @@ function MobileTodayView() {
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Rhythm</h1>
         <button
           onClick={toggleTheme}
-          className="h-12 w-12 rounded-xl flex items-center justify-center text-muted-foreground active:bg-accent transition-colors"
+          className="h-12 w-12 rounded-xl flex items-center justify-center text-foreground/80 active:bg-white/20 transition-colors"
           aria-label="Toggle theme"
         >
           {theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
@@ -340,7 +340,7 @@ function MobileTodayView() {
       </div>
 
       <div className="px-6 pb-4">
-        <p className="text-xl text-muted-foreground">{todayFormatted}</p>
+        <p className="text-xl text-foreground/80">{todayFormatted}</p>
       </div>
 
       <div className="px-6 pb-6 space-y-4">
@@ -349,7 +349,7 @@ function MobileTodayView() {
           className="theme-btn-tinted w-full h-24 rounded-3xl border-2 flex items-center justify-center gap-4 active:scale-[0.97] transition-transform"
           style={{ ["--btn" as string]: "var(--theme-braindump)" }}
         >
-          <Sunrise className="h-10 w-10" />
+          <Sunrise className="h-10 w-10" style={{ color: "var(--btn)" }} />
           <span className="text-2xl font-bold">Morning Brain Dump</span>
         </button>
         <button
@@ -358,11 +358,11 @@ function MobileTodayView() {
           style={{ ["--btn" as string]: "var(--theme-sift)" }}
         >
           <div className="flex items-center gap-4">
-            <Sunset className="h-10 w-10" />
+            <Sunset className="h-10 w-10" style={{ color: "var(--btn)" }} />
             <span className="text-2xl font-bold">Evening Sift</span>
           </div>
           {incompleteTasks.length === 0 && (
-            <span className="text-sm opacity-70">Nothing to sift — you're clear</span>
+            <span className="text-sm opacity-75">Nothing to sift — you're clear</span>
           )}
         </button>
         <button
@@ -372,12 +372,12 @@ function MobileTodayView() {
           style={{ ["--btn" as string]: "var(--theme-cleanup)" }}
         >
           <div className="flex items-center gap-4">
-            <RefreshCw className={`h-10 w-10 ${cleanup.isPending ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-10 w-10 ${cleanup.isPending ? "animate-spin" : ""}`} style={{ color: "var(--btn)" }} />
             <span className="text-2xl font-bold">
               {cleanup.isPending ? "Cleaning…" : "Clean Up"}
             </span>
           </div>
-          <span className="text-sm opacity-70">Roll forward stale dates</span>
+          <span className="text-sm opacity-75">Roll forward stale dates</span>
         </button>
       </div>
 
@@ -387,15 +387,15 @@ function MobileTodayView() {
 
       <div className="flex-1 px-6 py-5 safe-area-bottom">
         {incompleteTasks.length === 0 && completedTasks.length === 0 && (
-          <div className="text-center py-16 text-muted-foreground">
+          <div className="text-center py-16 text-foreground/85">
             <p className="text-2xl font-medium">Your day is clear.</p>
-            <p className="text-lg mt-3 opacity-70">Start a Brain Dump to capture tasks.</p>
+            <p className="text-lg mt-3 opacity-75">Start a Brain Dump to capture tasks.</p>
           </div>
         )}
 
         {incompleteTasks.length > 0 && (
           <div className="mb-6">
-            <p className="text-base uppercase tracking-wider text-muted-foreground mb-4 font-semibold">
+            <p className="text-base uppercase tracking-wider text-foreground/75 mb-4 font-semibold">
               To Do ({incompleteTasks.length})
             </p>
             <div className="space-y-3">
@@ -403,13 +403,13 @@ function MobileTodayView() {
                 <button
                   key={task.id}
                   onClick={() => toggleTask.mutate({ id: task.id, isDone: true })}
-                  className="w-full text-left rounded-2xl border-2 bg-card p-6 flex items-center gap-5 active:scale-[0.97] transition-transform"
+                  className="w-full text-left rounded-2xl border-2 border-white/70 bg-white/85 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform"
                 >
-                  <div className="h-10 w-10 rounded-full border-2 border-muted-foreground/30 shrink-0" />
+                  <div className="h-10 w-10 rounded-full border-2 border-foreground/25 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <span className="text-xl font-medium block leading-snug">{task.title}</span>
                   </div>
-                  <span className={`text-sm font-semibold px-3 py-1.5 rounded-lg shrink-0 ${getQuadrantColor(task.isUrgent, task.isImportant)}`}>
+                  <span className={`text-sm font-semibold px-4 py-1.5 rounded-full shrink-0 ${getQuadrantColor(task.isUrgent, task.isImportant)}`}>
                     {getQuadrantLabel(task.isUrgent, task.isImportant)}
                   </span>
                 </button>
@@ -420,7 +420,7 @@ function MobileTodayView() {
 
         {completedTasks.length > 0 && (
           <div>
-            <p className="text-base uppercase tracking-wider text-muted-foreground mb-4 font-semibold">
+            <p className="text-base uppercase tracking-wider text-foreground/75 mb-4 font-semibold">
               Done ({completedTasks.length})
             </p>
             <div className="space-y-3">
@@ -428,12 +428,12 @@ function MobileTodayView() {
                 <button
                   key={task.id}
                   onClick={() => toggleTask.mutate({ id: task.id, isDone: false })}
-                  className="w-full text-left rounded-2xl border bg-card/50 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform opacity-50"
+                  className="w-full text-left rounded-2xl border border-white/50 bg-white/60 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform opacity-70"
                 >
                   <div className="h-10 w-10 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center shrink-0">
                     <Check className="h-6 w-6 text-primary" />
                   </div>
-                  <span className="text-xl line-through text-muted-foreground flex-1 leading-snug">{task.title}</span>
+                  <span className="text-xl line-through text-foreground/60 flex-1 leading-snug">{task.title}</span>
                 </button>
               ))}
             </div>
