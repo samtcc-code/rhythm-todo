@@ -199,14 +199,14 @@ function DashboardLayoutContent({
     return location === path;
   };
 
-  // py-2 for nav items matches the visual weight of section items with their headers
+  // py-2.5 for nav items matches the visual weight of section items with their headers
   const navBtn = (active: boolean) =>
-    `flex items-center gap-2.5 w-full px-3 py-2 rounded-md text-sm transition-colors text-left ${
+    `flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm transition-colors text-left ${
       active ? "bg-white/50 text-primary font-medium" : "text-foreground/80 hover:bg-white/30 hover:text-foreground"
     }`;
 
   const sectionBtn = (active: boolean) =>
-    `flex items-center gap-2.5 flex-1 min-w-0 px-3 py-1.5 rounded-md text-sm transition-colors text-left ${
+    `flex items-center gap-3 flex-1 min-w-0 px-3 py-2 rounded-md text-sm transition-colors text-left ${
       active ? "bg-white/50 text-primary font-medium" : "text-foreground/80 hover:bg-white/30 hover:text-foreground"
     }`;
 
@@ -263,8 +263,8 @@ function DashboardLayoutContent({
                 <>
                   {/* Owners */}
                   {usersQuery.data && usersQuery.data.length > 0 && (
-                    <div className="mt-5">
-                      <p className="px-3 mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">Owners</p>
+                    <div className="mt-6">
+                      <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Owners</p>
                       {usersQuery.data.map(u => {
                         const active = location === `/owner/${u.id}`;
                         return (
@@ -278,9 +278,9 @@ function DashboardLayoutContent({
                   )}
 
                   {/* Areas */}
-                  <div className="mt-5">
-                    <div className="flex items-center justify-between px-3 mb-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">Areas</p>
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between px-3 mb-2">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Areas</p>
                       <button onClick={() => setShowCreateArea(true)} className="text-muted-foreground hover:text-foreground transition-colors">
                         <Plus className="h-3.5 w-3.5" />
                       </button>
@@ -315,9 +315,9 @@ function DashboardLayoutContent({
                   </div>
 
                   {/* Projects */}
-                  <div className="mt-5">
-                    <div className="flex items-center justify-between px-3 mb-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">Projects</p>
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between px-3 mb-2">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Projects</p>
                       <button onClick={() => setShowCreateProject(true)} className="text-muted-foreground hover:text-foreground transition-colors">
                         <Plus className="h-3.5 w-3.5" />
                       </button>
@@ -352,9 +352,9 @@ function DashboardLayoutContent({
                   </div>
 
                   {/* Tags */}
-                  <div className="mt-5 mb-4">
-                    <div className="flex items-center justify-between px-3 mb-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">Tags</p>
+                  <div className="mt-6 mb-4">
+                    <div className="flex items-center justify-between px-3 mb-2">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Tags</p>
                       <button onClick={() => setShowCreateTag(true)} className="text-muted-foreground hover:text-foreground transition-colors">
                         <Plus className="h-3.5 w-3.5" />
                       </button>
