@@ -49,8 +49,8 @@
 :root {
   /* Overall look */
   --theme-accent:      #0B4C50;                     /* Primary buttons, links, focus rings — deep navy-teal for contrast on teal bg */
-  --theme-bg-from:     #3CB7B9;                     /* Page background — top-left */
-  --theme-bg-to:       #3CB7B9;                     /* Page background — bottom-right (solid teal) */
+  --theme-bg-from:     #E4F3F4;                     /* Page background — top-left */
+  --theme-bg-to:       #E4F3F4;                     /* Page background — bottom-right (solid teal) */
   --theme-tint:        rgba(255, 255, 255, 0.18);   /* Soft accent surfaces — semi-white for teal bg */
 
   /* Mobile action buttons (background/border/text derived from these) */
