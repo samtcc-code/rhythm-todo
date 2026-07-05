@@ -112,7 +112,7 @@ export default function TaskItem({
   return (
     <div
       className={cn(
-        "group flex items-center gap-4 md:gap-2 px-4 md:px-3 py-5 md:py-2.5 rounded-xl md:rounded-lg transition-colors hover:bg-accent/50 cursor-pointer border border-transparent active:bg-accent/70",
+        "group flex items-center gap-4 md:gap-3 px-4 md:px-3 py-5 md:py-3 rounded-xl md:rounded-lg transition-colors hover:bg-accent/50 cursor-pointer border border-transparent active:bg-accent/70",
         task.isDone && "opacity-50",
         isSelected && "bg-primary/5 border-primary/40 hover:bg-primary/10"
       )}

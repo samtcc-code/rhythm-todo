@@ -199,7 +199,7 @@ export default function TaskList({
         </div>
       )}
 
-      <div className="space-y-1 md:space-y-0.5">
+      <div className="space-y-1">
         {tasks.map((task, idx) => (
           <div key={task.id}>
             {selectedTaskId === task.id && !selectMode ? (
