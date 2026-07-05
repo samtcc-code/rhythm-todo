@@ -329,7 +329,10 @@ function MobileTodayView() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <div className="flex items-center justify-between px-6 py-5 safe-area-top">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Rhythm</h1>
+        <div className="flex items-center gap-2.5">
+          <img src="/rhythm-check.png" alt="" className="h-7 w-7 shrink-0" />
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Rhythm</h1>
+        </div>
         <button
           onClick={toggleTheme}
           className="h-12 w-12 rounded-xl flex items-center justify-center text-foreground/80 active:bg-white/20 transition-colors"
