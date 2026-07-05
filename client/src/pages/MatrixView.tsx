@@ -9,8 +9,9 @@ const quadrants = [
     key: "doNow",
     title: "Do Now",
     subtitle: "Urgent & Important",
-    color: "border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20",
-    headerColor: "text-red-600 dark:text-red-400",
+    color:
+      "border-[#8EB4B5] dark:border-[#0D4B4C] bg-[#156A6B]/10 dark:bg-[#156A6B]/20",
+    headerColor: "text-[#156A6B] dark:text-[#73B5B6]",
     targets: [
       { key: "doLater", label: "→ Do Later" },
       { key: "delegate", label: "→ Delegate" },
@@ -21,8 +22,9 @@ const quadrants = [
     key: "doLater",
     title: "Do Later",
     subtitle: "Not Urgent & Important",
-    color: "border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20",
-    headerColor: "text-blue-600 dark:text-blue-400",
+    color:
+      "border-[#B7CDCD] dark:border-[#486D6E] bg-[#7FA5A6]/10 dark:bg-[#7FA5A6]/15",
+    headerColor: "text-[#668F90] dark:text-[#A9C4C4]",
     targets: [
       { key: "doNow", label: "→ Do Now" },
       { key: "delegate", label: "→ Delegate" },
@@ -33,8 +35,9 @@ const quadrants = [
     key: "delegate",
     title: "Delegate",
     subtitle: "Urgent & Not Important",
-    color: "border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20",
-    headerColor: "text-amber-600 dark:text-amber-400",
+    color:
+      "border-[#FFE08A] dark:border-[#806219] bg-[#FFC531]/15 dark:bg-[#FFC531]/15",
+    headerColor: "text-[#B98200] dark:text-[#FFD86B]",
     targets: [
       { key: "doNow", label: "→ Do Now" },
       { key: "doLater", label: "→ Do Later" },
@@ -45,8 +48,9 @@ const quadrants = [
     key: "delete",
     title: "Delete",
     subtitle: "Not Urgent & Not Important",
-    color: "border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/20",
-    headerColor: "text-gray-500 dark:text-gray-400",
+    color:
+      "border-[#FFB087] dark:border-[#7F3309] bg-[#FF6712]/10 dark:bg-[#FF6712]/15",
+    headerColor: "text-[#D94D00] dark:text-[#FF9B63]",
     targets: [
       { key: "doNow", label: "→ Do Now" },
       { key: "doLater", label: "→ Do Later" },
