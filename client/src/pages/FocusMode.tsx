@@ -21,8 +21,8 @@ export default function FocusMode() {
         </Button>
       </div>
 
-      <div className="w-full max-w-3xl px-4 pb-8 flex-1 flex flex-col md:flex-row gap-6 items-start justify-center">
-        <div className="w-full md:max-w-md">
+      <div className="w-full max-w-md px-4 pb-8 flex-1 flex flex-col gap-6 items-center">
+        <div className="w-full">
           <TaskDetailPanel
             taskId={taskId}
             onClose={exit}
@@ -30,7 +30,7 @@ export default function FocusMode() {
           />
         </div>
 
-        <div className="w-full md:w-72 shrink-0 mx-auto md:mx-0 opacity-80">
+        <div className="w-full opacity-80">
           <div
             className="w-full rounded-xl overflow-auto border bg-card"
             style={{ height: "min(360px, 45vh)" }}
