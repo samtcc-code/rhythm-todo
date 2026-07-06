@@ -10,13 +10,14 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { Sunrise, Sunset, ArrowRight, Plus, X, Check, Moon, Sun, Filter, RefreshCw } from "lucide-react";
+import { Sunrise, Sunset, ArrowRight, Plus, X, Check, Moon, Sun, Filter, RefreshCw, Target } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLocation } from "wouter";
 
 function getTodayStr() {
   const d = new Date();
@@ -57,6 +58,7 @@ function MobileTodayView() {
   const tomorrow = useMemo(() => getTomorrowStr(), []);
   const { user, loading } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [, setLocation] = useLocation();
 
   const todayTasks = trpc.tasks.list.useQuery({ doDate: today }, { enabled: !!user });
   const utils = trpc.useUtils();
@@ -400,10 +402,11 @@ function MobileTodayView() {
             </p>
             <div className="space-y-3">
               {incompleteTasks.map(task => (
-                <button
+                <div
                   key={task.id}
+                  role="button"
                   onClick={() => toggleTask.mutate({ id: task.id, isDone: true })}
-                  className="w-full text-left rounded-2xl border-2 border-white/70 bg-white/85 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform"
+                  className="w-full text-left rounded-2xl border-2 border-white/70 bg-white/85 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform cursor-pointer"
                 >
                   <div className="h-10 w-10 rounded-full border-2 border-foreground/25 shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -412,7 +415,14 @@ function MobileTodayView() {
                   <span className={`text-sm font-semibold px-4 py-1.5 rounded-full shrink-0 ${getQuadrantColor(task.isUrgent, task.isImportant)}`}>
                     {getQuadrantLabel(task.isUrgent, task.isImportant)}
                   </span>
-                </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); setLocation(`/focus/${task.id}`); }}
+                    className="shrink-0 h-11 w-11 rounded-full flex items-center justify-center text-foreground/70 active:bg-black/10"
+                    aria-label="Focus on this task"
+                  >
+                    <Target className="h-6 w-6" />
+                  </button>
+                </div>
               ))}
             </div>
           </div>

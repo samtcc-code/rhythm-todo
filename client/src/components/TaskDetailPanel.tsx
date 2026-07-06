@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/tooltip";
 import {
   Calendar, Clock, User, Tag, Trash2, X, Plus,
-  AlertCircle, Star, FolderOpen, ClipboardList,
+  AlertCircle, Star, FolderOpen, ClipboardList, Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLocation } from "wouter";
 
 interface TaskDetailPanelProps {
   taskId: number;
@@ -91,6 +92,7 @@ function SubtaskCheckbox({ checked, onChange }: { checked: boolean; onChange: ()
 }
 
 export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: TaskDetailPanelProps) {
+  const [, setLocation] = useLocation();
   const utils = trpc.useUtils();
   const taskQuery = trpc.tasks.get.useQuery({ id: taskId });
   const usersQuery = trpc.users.list.useQuery();
@@ -480,6 +482,21 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
               </div>
             </PopoverContent>
           </Popover>
+
+          {/* Focus mode */}
+          {!isDone && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setLocation(`/focus/${taskId}`)}
+                  className="text-muted-foreground hover:text-foreground transition-colors px-1.5 py-1 rounded hover:bg-black/5"
+                >
+                  <Target className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top"><p>Focus mode</p></TooltipContent>
+            </Tooltip>
+          )}
 
           {/* Delete */}
           <Tooltip>

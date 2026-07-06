@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, GripVertical, User, FolderOpen, ClipboardList } from "lucide-react";
+import { Calendar, Clock, GripVertical, User, FolderOpen, ClipboardList, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLocation } from "wouter";
 import type { Task } from "../../../drizzle/schema";
 
 interface TaskItemProps {
@@ -96,6 +97,7 @@ export default function TaskItem({
   isSelected = false,
   onToggleSelect,
 }: TaskItemProps) {
+  const [, setLocation] = useLocation();
   const ownerName = users?.find(u => u.id === task.ownerId)?.name;
   const areaName = areas?.find(a => a.id === task.areaId)?.name;
   const projectName = projects?.find(p => p.id === task.projectId)?.name;
@@ -206,6 +208,17 @@ export default function TaskItem({
           )}
         </div>
       </div>
+
+      {!task.isDone && (
+        <button
+          onClick={e => { e.stopPropagation(); setLocation(`/focus/${task.id}`); }}
+          className="shrink-0 hidden md:flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-accent"
+          aria-label="Focus on this task"
+          title="Focus mode"
+        >
+          <Target className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 }
