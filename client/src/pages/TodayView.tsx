@@ -18,6 +18,8 @@ import { useIsMobile } from "@/hooks/useMobile";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLocation } from "wouter";
+import { quadrantKeyFromFlags, quadrantLabel, quadrantPillClass } from "@/lib/quadrantStyles";
+import CompletionSparkles from "@/components/CompletionSparkles";
 
 function getTodayStr() {
   const d = new Date();
@@ -38,17 +40,51 @@ interface BrainDumpItem {
 }
 
 function getQuadrantLabel(isUrgent: boolean, isImportant: boolean) {
-  if (isUrgent && isImportant) return "Do Now";
-  if (!isUrgent && isImportant) return "Do Later";
-  if (isUrgent && !isImportant) return "Delegate";
-  return "Delete";
+  return quadrantLabel(quadrantKeyFromFlags(isUrgent, isImportant));
 }
 
 function getQuadrantColor(isUrgent: boolean, isImportant: boolean) {
-  if (isUrgent && isImportant) return "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30";
-  if (!isUrgent && isImportant) return "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30";
-  if (isUrgent && !isImportant) return "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30";
-  return "text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/30";
+  return quadrantPillClass(quadrantKeyFromFlags(isUrgent, isImportant));
+}
+
+function MobileIncompleteRow({
+  task,
+  onComplete,
+  onFocus,
+}: {
+  task: { id: number; title: string; isUrgent: boolean; isImportant: boolean };
+  onComplete: () => void;
+  onFocus: () => void;
+}) {
+  const [sparkKey, setSparkKey] = useState(0);
+  const handleTap = () => {
+    setSparkKey(k => k + 1);
+    onComplete();
+  };
+  return (
+    <div
+      role="button"
+      onClick={handleTap}
+      className="w-full text-left rounded-2xl border-2 border-white/70 bg-white/85 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform cursor-pointer"
+    >
+      <div className="h-10 w-10 rounded-full border-2 border-foreground/25 shrink-0 relative">
+        {sparkKey > 0 && <CompletionSparkles key={sparkKey} />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <span className="text-xl font-medium block leading-snug">{task.title}</span>
+      </div>
+      <span className={`text-sm font-semibold px-4 py-1.5 rounded-full shrink-0 ${getQuadrantColor(task.isUrgent, task.isImportant)}`}>
+        {getQuadrantLabel(task.isUrgent, task.isImportant)}
+      </span>
+      <button
+        onClick={e => { e.stopPropagation(); onFocus(); }}
+        className="shrink-0 h-11 w-11 rounded-full flex items-center justify-center text-foreground/70 active:bg-black/10"
+        aria-label="Focus on this task"
+      >
+        <Target className="h-6 w-6" />
+      </button>
+    </div>
+  );
 }
 
 type MobileScreen = "home" | "braindump" | "sift";
@@ -402,27 +438,12 @@ function MobileTodayView() {
             </p>
             <div className="space-y-3">
               {incompleteTasks.map(task => (
-                <div
+                <MobileIncompleteRow
                   key={task.id}
-                  role="button"
-                  onClick={() => toggleTask.mutate({ id: task.id, isDone: true })}
-                  className="w-full text-left rounded-2xl border-2 border-white/70 bg-white/85 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform cursor-pointer"
-                >
-                  <div className="h-10 w-10 rounded-full border-2 border-foreground/25 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-xl font-medium block leading-snug">{task.title}</span>
-                  </div>
-                  <span className={`text-sm font-semibold px-4 py-1.5 rounded-full shrink-0 ${getQuadrantColor(task.isUrgent, task.isImportant)}`}>
-                    {getQuadrantLabel(task.isUrgent, task.isImportant)}
-                  </span>
-                  <button
-                    onClick={e => { e.stopPropagation(); setLocation(`/focus/${task.id}`); }}
-                    className="shrink-0 h-11 w-11 rounded-full flex items-center justify-center text-foreground/70 active:bg-black/10"
-                    aria-label="Focus on this task"
-                  >
-                    <Target className="h-6 w-6" />
-                  </button>
-                </div>
+                  task={task}
+                  onComplete={() => toggleTask.mutate({ id: task.id, isDone: true })}
+                  onFocus={() => setLocation(`/focus/${task.id}`)}
+                />
               ))}
             </div>
           </div>

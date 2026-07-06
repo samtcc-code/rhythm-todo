@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation } from "wouter";
+import { quadrantKeyFromFlags, quadrantTextClass } from "@/lib/quadrantStyles";
 
 interface TaskDetailPanelProps {
   taskId: number;
@@ -60,9 +61,8 @@ function TaskCheckbox({ checked, onChange }: { checked: boolean; onChange: () =>
       onClick={onChange}
       className={cn(
         "h-5 w-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all",
-        checked ? "bg-primary border-primary" : "border-blue-300 bg-white hover:border-primary"
+        checked ? "bg-primary border-primary" : "border-[#8EB4B5] bg-white hover:border-primary"
       )}
-      style={!checked ? { boxShadow: "0 0 0 1px #d3f6ff" } : {}}
     >
       {checked && (
         <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
@@ -183,7 +183,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
   if (!task) return (
     <div className="rounded-xl bg-white/90 backdrop-blur shadow-md border border-white/60 mx-0 my-1 overflow-hidden animate-in fade-in-0 duration-200">
       <div className="flex items-start gap-3 px-4 pt-4 pb-2">
-        <div className="h-5 w-5 rounded-full border-2 border-blue-200 shrink-0 mt-0.5" />
+        <div className="h-5 w-5 rounded-full border-2 border-[#B7CDCD] shrink-0 mt-0.5" />
         <div className="h-4 w-40 bg-black/5 rounded animate-pulse mt-0.5" />
         <div className="shrink-0 h-7 w-7" />
       </div>
@@ -202,9 +202,12 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
   const doDateDisplay = doDateType === "someday" ? "Someday" : doDateType === "today" ? "Today" : doDateType === "date" && doDate ? formatDateDisplay(doDate) : null;
   const dueDateDisplay = dueDate ? formatDateDisplay(dueDate) : null;
 
-  const quadrant = isUrgent && isImportant ? "doNow" : !isUrgent && isImportant ? "doLater" : isUrgent && !isImportant ? "delegate" : "delete";
+  const quadrant = quadrantKeyFromFlags(isUrgent, isImportant);
   const quadrantColors: Record<string, string> = {
-    doNow: "text-red-500", doLater: "text-blue-500", delegate: "text-amber-500", delete: "text-gray-400"
+    doNow: quadrantTextClass("doNow"),
+    doLater: quadrantTextClass("doLater"),
+    delegate: quadrantTextClass("delegate"),
+    delete: quadrantTextClass("delete"),
   };
 
   return (
@@ -427,7 +430,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
             <TooltipTrigger asChild>
               <button
                 onClick={() => { setIsImportant(v => !v); triggerSave(); }}
-                className={cn("flex items-center px-1.5 py-1 rounded transition-colors", isImportant ? `${quadrantColors[quadrant]} bg-blue-50` : "text-muted-foreground hover:text-foreground hover:bg-black/5")}
+                className={cn("flex items-center px-1.5 py-1 rounded transition-colors", isImportant ? `${quadrantColors[quadrant]} bg-primary/10` : "text-muted-foreground hover:text-foreground hover:bg-black/5")}
               >
                 <Star className="h-3.5 w-3.5" />
               </button>
