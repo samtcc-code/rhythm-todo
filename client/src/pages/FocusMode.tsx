@@ -7,10 +7,10 @@ const POMODORO_URL = "https://giorgiark.github.io/pomodorotimer/";
 
 export default function FocusMode() {
   const [, params] = useRoute<{ id: string }>("/focus/:id");
-  const taskId = parseInt(params?.id ?? "0");
+  const taskId = params?.id ? parseInt(params.id, 10) : NaN;
   const [, setLocation] = useLocation();
 
-  const taskQuery = trpc.tasks.get.useQuery({ id: taskId }, { enabled: !!taskId });
+  const taskQuery = trpc.tasks.get.useQuery({ id: taskId }, { enabled: Number.isFinite(taskId) });
   const tagsQuery = trpc.tags.list.useQuery();
   const utils = trpc.useUtils();
   const updateTask = trpc.tasks.update.useMutation({
@@ -44,7 +44,7 @@ export default function FocusMode() {
 
       <div className="w-full max-w-md px-4 flex flex-col items-center flex-1 pb-8">
         <h1 className="text-xl md:text-2xl font-semibold text-foreground text-center truncate w-full">
-          {task?.title ?? (taskQuery.isLoading ? "Loading…" : "Task not found")}
+          {task?.title ?? (taskQuery.isPending ? "Loading…" : "Task not found")}
         </h1>
 
         {tags.length > 0 && (
@@ -62,14 +62,14 @@ export default function FocusMode() {
         {tags.length === 0 && <div className="mb-6" />}
 
         <div
-          className="w-full rounded-xl overflow-auto border bg-card"
-          style={{ height: "min(640px, 82vh)" }}
+          className="w-full max-w-sm mx-auto rounded-xl overflow-auto border bg-card"
+          style={{ height: "min(520px, 70vh)" }}
         >
           <iframe
             src={POMODORO_URL}
             title="Pomodoro Timer"
             className="w-full h-full"
-            style={{ border: "none", minHeight: 560 }}
+            style={{ border: "none" }}
           />
         </div>
       </div>
