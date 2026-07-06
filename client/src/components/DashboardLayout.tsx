@@ -232,7 +232,10 @@ function DashboardLayoutContent({
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
               {!isCollapsed && (
-                <span className="font-semibold tracking-tight text-foreground truncate">Daily Rhythm</span>
+                <>
+                  <img src="/rhythm-check.png" alt="" className="h-5 w-5 shrink-0" />
+                  <span className="font-semibold tracking-tight text-foreground truncate">Daily Rhythm</span>
+                </>
               )}
             </div>
           </SidebarHeader>
