@@ -8,6 +8,11 @@ interface QuadrantMeta {
   text: string;
   bg: string;
   border: string;
+  // Optional overrides applied ONLY when rendering as a pill (Today, etc.)
+  // — the matrix cards keep using text/bg/border unchanged. Tune here to
+  // make a single quadrant's pill visually louder without touching Matrix.
+  pillText?: string;
+  pillBg?: string;
 }
 
 export const quadrantMeta: Record<QuadrantKey, QuadrantMeta> = {
@@ -16,6 +21,10 @@ export const quadrantMeta: Record<QuadrantKey, QuadrantMeta> = {
     text:   "text-[#156A6B] dark:text-[#73B5B6]",
     bg:     "bg-[#156A6B]/20 dark:bg-[#156A6B]/30",
     border: "border-[#8EB4B5] dark:border-[#0D4B4C]",
+    // Louder, near-solid deep teal for the pill — makes Do Now pop
+    // against Do Later on the Today list.
+    pillText: "text-white dark:text-white",
+    pillBg:   "bg-[#0B4C50] dark:bg-[#0F5A5C]",
   },
   doLater: {
     label: "Do Later",
@@ -56,10 +65,11 @@ export function quadrantBadgeClass(q: string): string {
 }
 
 // Bg + text only (no border) — used on filled pills like Today mobile.
+// Prefers pillText/pillBg overrides when defined on the quadrant.
 export function quadrantPillClass(q: string): string {
   const m = quadrantMeta[q as QuadrantKey];
   if (!m) return "";
-  return `${m.text} ${m.bg}`;
+  return `${m.pillText ?? m.text} ${m.pillBg ?? m.bg}`;
 }
 
 // Text only — used to color icons/labels inline.

@@ -369,7 +369,7 @@ function MobileTodayView() {
       <div className="flex items-center justify-between px-6 py-5 safe-area-top">
         <div className="flex items-center gap-2.5">
           <img src="/rhythm-check.png" alt="" className="h-7 w-7 shrink-0" />
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Rhythm</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground page-title-glow">Rhythm</h1>
         </div>
         <button
           onClick={toggleTheme}
@@ -586,7 +586,7 @@ function DesktopTodayView() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Today</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground page-title-glow">Today</h1>
           <p className="text-sm text-muted-foreground mt-1">{todayFormatted}</p>
         </div>
         <div className="flex items-center gap-2">

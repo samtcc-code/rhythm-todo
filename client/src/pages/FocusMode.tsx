@@ -43,7 +43,7 @@ export default function FocusMode() {
       </div>
 
       <div className="w-full max-w-md px-4 flex flex-col items-center flex-1 pb-8">
-        <h1 className="text-xl md:text-2xl font-semibold text-foreground text-center truncate w-full">
+        <h1 className="text-xl md:text-2xl font-semibold text-foreground text-center truncate w-full page-title-glow">
           {task?.title ?? (taskQuery.isLoading ? "Loading…" : "Task not found")}
         </h1>
 

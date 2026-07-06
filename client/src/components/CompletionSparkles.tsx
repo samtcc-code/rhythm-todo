@@ -13,14 +13,14 @@ interface Star {
 }
 
 const STARS: Star[] = [
-  { x: -22, y: -30, size: 10, delay: 0,   color: "#FFC531" },
-  { x:  26, y: -34, size: 12, delay: 40,  color: "#FF6712" },
-  { x:  36, y:   8, size:  9, delay: 80,  color: "#FFC531" },
-  { x:  18, y:  32, size: 11, delay: 120, color: "#FF6712" },
-  { x: -28, y:  26, size: 10, delay: 60,  color: "#FFC531" },
-  { x: -34, y:  -6, size:  8, delay: 100, color: "#FF6712" },
-  { x:   4, y: -38, size:  7, delay: 140, color: "#FFC531" },
-  { x:  -6, y:  40, size:  8, delay: 20,  color: "#FF6712" },
+  { x: -40, y: -55, size: 14, delay: 0,   color: "#FFC531" },
+  { x:  48, y: -60, size: 16, delay: 40,  color: "#FF6712" },
+  { x:  62, y:  14, size: 13, delay: 80,  color: "#FFC531" },
+  { x:  32, y:  56, size: 15, delay: 120, color: "#FF6712" },
+  { x: -50, y:  46, size: 14, delay: 60,  color: "#FFC531" },
+  { x: -60, y: -10, size: 12, delay: 100, color: "#FF6712" },
+  { x:   6, y: -68, size: 11, delay: 140, color: "#FFC531" },
+  { x: -10, y:  70, size: 12, delay: 20,  color: "#FF6712" },
 ];
 
 const DURATION_MS = 900;
