@@ -14,7 +14,7 @@ export const quadrantMeta: Record<QuadrantKey, QuadrantMeta> = {
   doNow: {
     label: "Do Now",
     text:   "text-[#156A6B] dark:text-[#73B5B6]",
-    bg:     "bg-[#156A6B]/10 dark:bg-[#156A6B]/20",
+    bg:     "bg-[#156A6B]/50 dark:bg-[#156A6B]/60",
     border: "border-[#8EB4B5] dark:border-[#0D4B4C]",
   },
   doLater: {
