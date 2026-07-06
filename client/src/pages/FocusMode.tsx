@@ -1,4 +1,4 @@
-import { useParams, useLocation } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check } from "lucide-react";
@@ -6,8 +6,8 @@ import { ArrowLeft, Check } from "lucide-react";
 const POMODORO_URL = "https://giorgiark.github.io/pomodorotimer/";
 
 export default function FocusMode() {
-  const params = useParams<{ id: string }>();
-  const taskId = parseInt(params.id ?? "0");
+  const [, params] = useRoute<{ id: string }>("/focus/:id");
+  const taskId = parseInt(params?.id ?? "0");
   const [, setLocation] = useLocation();
 
   const taskQuery = trpc.tasks.get.useQuery({ id: taskId }, { enabled: !!taskId });
