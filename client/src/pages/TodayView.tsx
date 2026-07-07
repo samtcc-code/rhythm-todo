@@ -65,7 +65,7 @@ function MobileIncompleteRow({
     <div
       role="button"
       onClick={handleTap}
-      className="w-full text-left rounded-2xl border-2 border-white/70 bg-white/85 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform cursor-pointer"
+      className="w-full text-left rounded-2xl border-2 border-border bg-card p-6 flex items-center gap-5 active:scale-[0.97] transition-transform cursor-pointer"
     >
       <div className="h-10 w-10 rounded-full border-2 border-foreground/25 shrink-0 relative">
         {sparkKey > 0 && <CompletionSparkles key={sparkKey} />}
@@ -202,75 +202,75 @@ function MobileTodayView() {
   if (screen === "braindump") {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <div className="flex items-center justify-between px-6 py-5 border-b safe-area-top">
-          <button onClick={() => setScreen("home")} className="text-xl text-foreground/80 active:text-foreground py-3 px-2 -ml-2">
+        <div className="flex items-center justify-between px-4 py-4 border-b safe-area-top">
+          <button onClick={() => setScreen("home")} className="text-base text-foreground/80 active:text-foreground py-2 px-2 -ml-2">
             ← Back
           </button>
-          <div className="flex items-center gap-3">
-            <Sunrise className="h-7 w-7" style={{ color: "var(--theme-braindump)" }} />
-            <span className="text-2xl font-bold">Brain Dump</span>
+          <div className="flex items-center gap-2">
+            <Sunrise className="h-5 w-5" style={{ color: "var(--theme-braindump)" }} />
+            <span className="text-lg font-bold">Brain Dump</span>
           </div>
-          <div className="w-20" />
+          <div className="w-14" />
         </div>
 
-        <div className="px-6 py-6 border-b bg-background">
-          <div className="flex items-center gap-4">
+        <div className="px-4 py-4 border-b bg-background">
+          <div className="flex items-center gap-3">
             <input
               value={dumpInput}
               onChange={e => setDumpInput(e.target.value)}
               placeholder="What's on your mind?"
-              className="flex-1 text-2xl h-20 rounded-2xl px-6 border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="flex-1 text-base h-12 rounded-xl px-4 border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               autoFocus
               onKeyDown={e => { if (e.key === "Enter") addDumpItem(); }}
             />
             <button
               onClick={addDumpItem}
               disabled={!dumpInput.trim()}
-              className="h-20 w-20 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 active:scale-95 transition-transform disabled:opacity-30"
+              className="h-12 w-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 active:scale-95 transition-transform disabled:opacity-30"
             >
-              <Plus className="h-10 w-10" />
+              <Plus className="h-6 w-6" />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
           {dumpItems.length === 0 && (
-            <div className="text-center py-20 text-foreground/80">
-              <Sunrise className="h-16 w-16 mx-auto mb-4 opacity-40" />
-              <p className="text-2xl font-medium">Type a thought and tap +</p>
-              <p className="text-lg mt-3 opacity-75">Capture everything first, organize after.</p>
+            <div className="text-center py-14 text-foreground/80">
+              <Sunrise className="h-12 w-12 mx-auto mb-3 opacity-40" />
+              <p className="text-lg font-medium">Type a thought and tap +</p>
+              <p className="text-sm mt-2 opacity-75">Capture everything first, organize after.</p>
             </div>
           )}
           {dumpItems.map((item, idx) => (
-            <div key={idx} className="rounded-2xl border-2 p-6 space-y-5 bg-card">
-              <div className="flex items-start justify-between gap-4">
-                <span className="text-xl font-semibold leading-snug flex-1">{item.title}</span>
-                <button onClick={() => removeDumpItem(idx)} className="text-muted-foreground active:text-destructive p-3 -m-3 shrink-0">
-                  <X className="h-7 w-7" />
+            <div key={idx} className="rounded-xl border p-4 space-y-3 bg-card">
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-base font-semibold leading-snug flex-1">{item.title}</span>
+                <button onClick={() => removeDumpItem(idx)} className="text-muted-foreground active:text-destructive p-2 -m-2 shrink-0">
+                  <X className="h-5 w-5" />
                 </button>
               </div>
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => updateDumpItem(idx, "isUrgent", !item.isUrgent)}
-                  className={`h-14 px-6 rounded-2xl text-lg font-semibold transition-all border-2 active:scale-95 ${item.isUrgent ? "bg-red-100 dark:bg-red-950/50 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300" : "bg-background border-border text-muted-foreground"}`}
+                  className={`h-9 px-3 rounded-xl text-sm font-medium transition-all border active:scale-95 ${item.isUrgent ? "bg-red-100 dark:bg-red-950/50 border-red-400 dark:border-red-600 text-red-700 dark:text-red-300" : "bg-background border-border text-muted-foreground"}`}
                 >
                   🔴 Urgent
                 </button>
                 <button
                   onClick={() => updateDumpItem(idx, "isImportant", !item.isImportant)}
-                  className={`h-14 px-6 rounded-2xl text-lg font-semibold transition-all border-2 active:scale-95 ${item.isImportant ? "bg-blue-100 dark:bg-blue-950/50 border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-300" : "bg-background border-border text-muted-foreground"}`}
+                  className={`h-9 px-3 rounded-xl text-sm font-medium transition-all border active:scale-95 ${item.isImportant ? "bg-blue-100 dark:bg-blue-950/50 border-blue-400 dark:border-blue-600 text-blue-700 dark:text-blue-300" : "bg-background border-border text-muted-foreground"}`}
                 >
                   🔵 Important
                 </button>
                 <button
                   onClick={() => updateDumpItem(idx, "forToday", !item.forToday)}
-                  className={`h-14 px-6 rounded-2xl text-lg font-semibold transition-all border-2 active:scale-95 ${item.forToday ? "bg-green-100 dark:bg-green-950/50 border-green-400 dark:border-green-600 text-green-700 dark:text-green-300" : "bg-background border-border text-muted-foreground"}`}
+                  className={`h-9 px-3 rounded-xl text-sm font-medium transition-all border active:scale-95 ${item.forToday ? "bg-green-100 dark:bg-green-950/50 border-green-400 dark:border-green-600 text-green-700 dark:text-green-300" : "bg-background border-border text-muted-foreground"}`}
                 >
                   {item.forToday ? "📅 Today" : "💭 Someday"}
                 </button>
               </div>
               <div>
-                <span className={`inline-block text-base font-semibold px-4 py-2 rounded-xl ${getQuadrantColor(item.isUrgent, item.isImportant)}`}>
+                <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-lg ${getQuadrantColor(item.isUrgent, item.isImportant)}`}>
                   → {getQuadrantLabel(item.isUrgent, item.isImportant)}
                 </span>
               </div>
@@ -279,14 +279,14 @@ function MobileTodayView() {
         </div>
 
         {dumpItems.length > 0 && (
-          <div className="sticky bottom-0 px-6 py-5 border-t bg-background/95 backdrop-blur safe-area-bottom">
+          <div className="sticky bottom-0 px-4 py-4 border-t bg-background/95 backdrop-blur safe-area-bottom">
             <button
               onClick={handleSubmitBrainDump}
               disabled={isSubmitting}
-              className="w-full h-20 rounded-2xl bg-primary text-primary-foreground text-2xl font-bold flex items-center justify-center gap-4 active:scale-[0.97] transition-transform disabled:opacity-50"
+              className="w-full h-14 rounded-xl bg-primary text-primary-foreground text-lg font-bold flex items-center justify-center gap-2 active:scale-[0.97] transition-transform disabled:opacity-50"
             >
               {isSubmitting ? <span>Creating...</span> : (
-                <><Check className="h-8 w-8" />Create {dumpItems.length} Task{dumpItems.length !== 1 ? "s" : ""}</>
+                <><Check className="h-5 w-5" />Create {dumpItems.length} Task{dumpItems.length !== 1 ? "s" : ""}</>
               )}
             </button>
           </div>
@@ -309,7 +309,7 @@ function MobileTodayView() {
           <div className="w-20" />
         </div>
 
-        <div className="px-6 py-5 border-b bg-white/50">
+        <div className="px-6 py-5 border-b bg-card">
           <p className="text-lg text-foreground/85">Tap tasks you didn't finish to push them to tomorrow.</p>
         </div>
 
@@ -373,7 +373,7 @@ function MobileTodayView() {
         </div>
         <button
           onClick={toggleTheme}
-          className="h-12 w-12 rounded-xl flex items-center justify-center text-foreground/80 active:bg-white/20 transition-colors"
+          className="h-12 w-12 rounded-xl flex items-center justify-center text-foreground/80 active:bg-accent transition-colors"
           aria-label="Toggle theme"
         >
           {theme === "dark" ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
@@ -462,7 +462,7 @@ function MobileTodayView() {
                 <button
                   key={task.id}
                   onClick={() => toggleTask.mutate({ id: task.id, isDone: false })}
-                  className="w-full text-left rounded-2xl border border-white/50 bg-white/60 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform opacity-70"
+                  className="w-full text-left rounded-2xl border border-border bg-card/70 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform opacity-70"
                 >
                   <div className="h-10 w-10 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center shrink-0">
                     <Check className="h-6 w-6 text-primary" />
