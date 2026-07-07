@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, GripVertical, User, FolderOpen, ClipboardList, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation } from "wouter";
 import type { Task } from "../../../drizzle/schema";
+import { quadrantBadgeClass, quadrantLabel } from "@/lib/quadrantStyles";
+import CompletionSparkles from "./CompletionSparkles";
 
 interface TaskItemProps {
   task: Task;
@@ -14,29 +17,10 @@ interface TaskItemProps {
   projects?: { id: number; name: string }[];
   dragHandleProps?: Record<string, unknown>;
   hideDoDate?: boolean;
+  hideQuadrant?: boolean;
   selectMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
-}
-
-function quadrantLabel(q: string) {
-  switch (q) {
-    case "doNow": return "Do Now";
-    case "doLater": return "Do Later";
-    case "delegate": return "Delegate";
-    case "delete": return "Delete";
-    default: return q;
-  }
-}
-
-function quadrantColor(q: string) {
-  switch (q) {
-    case "doNow": return "bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800";
-    case "doLater": return "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800";
-    case "delegate": return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800";
-    case "delete": return "bg-gray-500/10 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700";
-    default: return "";
-  }
 }
 
 function formatDate(d: string | Date | null): string {
@@ -70,9 +54,8 @@ function TaskCircle({ checked, onToggle }: { checked: boolean; onToggle: (e: Rea
         "h-[18px] w-[18px] md:h-[18px] md:w-[18px] rounded-full border-2 shrink-0 flex items-center justify-center transition-all group/cb",
         checked
           ? "bg-primary border-primary"
-          : "border-blue-300 bg-transparent hover:border-primary hover:shadow-[0_0_0_3px_rgba(147,197,253,0.4)]"
+          : "border-[#8EB4B5] bg-transparent hover:border-primary hover:shadow-[0_0_0_3px_rgba(21,106,107,0.18)]"
       )}
-      style={!checked ? { boxShadow: "0 0 0 1px #d3f6ff" } : {}}
     >
       {checked && (
         <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
@@ -93,11 +76,13 @@ export default function TaskItem({
   projects,
   dragHandleProps,
   hideDoDate = false,
+  hideQuadrant = false,
   selectMode = false,
   isSelected = false,
   onToggleSelect,
 }: TaskItemProps) {
   const [, setLocation] = useLocation();
+  const [sparkKey, setSparkKey] = useState(0);
   const ownerName = users?.find(u => u.id === task.ownerId)?.name;
   const areaName = areas?.find(a => a.id === task.areaId)?.name;
   const projectName = projects?.find(p => p.id === task.projectId)?.name;
@@ -161,13 +146,18 @@ export default function TaskItem({
 
       {/* Checkbox */}
       <div
-        className="shrink-0 flex items-center justify-center w-12 h-12 md:w-auto md:h-auto -m-1 md:m-0"
+        className="shrink-0 flex items-center justify-center w-12 h-12 md:w-auto md:h-auto -m-1 md:m-0 relative"
         onClick={e => e.stopPropagation()}
       >
         <TaskCircle
           checked={task.isDone}
-          onToggle={e => { e.stopPropagation(); onToggleComplete?.(task); }}
+          onToggle={e => {
+            e.stopPropagation();
+            if (!task.isDone) setSparkKey(k => k + 1);
+            onToggleComplete?.(task);
+          }}
         />
+        {sparkKey > 0 && <CompletionSparkles key={sparkKey} />}
       </div>
 
       <div className="flex-1 min-w-0">
@@ -178,9 +168,11 @@ export default function TaskItem({
           {task.title}
         </p>
         <div className="flex items-center gap-2.5 md:gap-2 mt-2 md:mt-1 flex-wrap">
-          <Badge variant="outline" className={cn("text-sm md:text-[10px] px-2.5 md:px-1.5 py-1 md:py-0 h-7 md:h-5 font-medium", quadrantColor(task.quadrant))}>
-            {quadrantLabel(task.quadrant)}
-          </Badge>
+          {!hideQuadrant && (
+            <Badge variant="outline" className={cn("text-sm md:text-[10px] px-2.5 md:px-1.5 py-1 md:py-0 h-7 md:h-5 font-medium", quadrantBadgeClass(task.quadrant))}>
+              {quadrantLabel(task.quadrant)}
+            </Badge>
+          )}
           {areaName && (
             <span className="flex items-center gap-1.5 md:gap-1 text-sm md:text-[11px] text-muted-foreground">
               <FolderOpen className="h-4 w-4 md:h-3 md:w-3" />{areaName}

@@ -3,15 +3,18 @@ import { trpc } from "@/lib/trpc";
 import TaskItem from "@/components/TaskItem";
 import TaskDetailPanel from "@/components/TaskDetailPanel";
 import { cn } from "@/lib/utils";
+import { quadrantCardClass, quadrantTextClass, quadrantLabel, type QuadrantKey } from "@/lib/quadrantStyles";
 
-const quadrants = [
+const quadrants: Array<{
+  key: QuadrantKey;
+  title: string;
+  subtitle: string;
+  targets: { key: QuadrantKey; label: string }[];
+}> = [
   {
     key: "doNow",
     title: "Do Now",
     subtitle: "Urgent & Important",
-    color:
-      "border-[#8EB4B5] dark:border-[#0D4B4C] bg-[#156A6B]/10 dark:bg-[#156A6B]/20",
-    headerColor: "text-[#156A6B] dark:text-[#73B5B6]",
     targets: [
       { key: "doLater", label: "→ Do Later" },
       { key: "delegate", label: "→ Delegate" },
@@ -22,9 +25,6 @@ const quadrants = [
     key: "doLater",
     title: "Do Later",
     subtitle: "Not Urgent & Important",
-    color:
-      "border-[#B7CDCD] dark:border-[#486D6E] bg-[#7FA5A6]/10 dark:bg-[#7FA5A6]/15",
-    headerColor: "text-[#668F90] dark:text-[#A9C4C4]",
     targets: [
       { key: "doNow", label: "→ Do Now" },
       { key: "delegate", label: "→ Delegate" },
@@ -35,9 +35,6 @@ const quadrants = [
     key: "delegate",
     title: "Delegate",
     subtitle: "Urgent & Not Important",
-    color:
-      "border-[#FFE08A] dark:border-[#806219] bg-[#FFC531]/15 dark:bg-[#FFC531]/15",
-    headerColor: "text-[#B98200] dark:text-[#FFD86B]",
     targets: [
       { key: "doNow", label: "→ Do Now" },
       { key: "doLater", label: "→ Do Later" },
@@ -48,9 +45,6 @@ const quadrants = [
     key: "delete",
     title: "Delete",
     subtitle: "Not Urgent & Not Important",
-    color:
-      "border-[#FFB087] dark:border-[#7F3309] bg-[#FF6712]/10 dark:bg-[#FF6712]/15",
-    headerColor: "text-[#D94D00] dark:text-[#FF9B63]",
     targets: [
       { key: "doNow", label: "→ Do Now" },
       { key: "doLater", label: "→ Do Later" },
@@ -105,9 +99,9 @@ export default function MatrixView() {
         {quadrants.map(q => {
           const tasks = tasksByQuadrant(q.key);
           return (
-            <div key={q.key} className={cn("rounded-2xl md:rounded-xl border p-5 md:p-4 min-h-[200px]", q.color)}>
+            <div key={q.key} className={cn("rounded-2xl md:rounded-xl border p-5 md:p-4 min-h-[200px]", quadrantCardClass(q.key))}>
               <div className="mb-4 md:mb-3">
-                <h2 className={cn("text-lg md:text-sm font-semibold", q.headerColor)}>{q.title}</h2>
+                <h2 className={cn("text-lg md:text-sm font-semibold", quadrantTextClass(q.key))}>{quadrantLabel(q.key)}</h2>
                 <p className="text-sm md:text-[11px] text-muted-foreground">{q.subtitle}</p>
               </div>
 
@@ -142,6 +136,7 @@ export default function MatrixView() {
                           users={usersQuery.data}
                           areas={areasData}
                           projects={projectsData}
+                          hideQuadrant
                         />
                         {/* Hover quick-move pills */}
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover/task:flex items-center gap-1">
