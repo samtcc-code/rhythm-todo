@@ -6,6 +6,7 @@ import { Sunrise, Filter, X } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { useLingeringCompletions } from "@/hooks/useLingeringCompletions";
 
 function getTomorrowStr() {
   const d = new Date();
@@ -23,12 +24,13 @@ export default function TomorrowView() {
 
   const [filterAreaId, setFilterAreaId] = useState<number | null>(null);
   const [filterProjectId, setFilterProjectId] = useState<number | null>(null);
+  const { lingeringIds, holdDuringGrace } = useLingeringCompletions();
 
   const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
   const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
 
-  const allIncomplete = tomorrowTasks.data?.filter(t => !t.isDone) ?? [];
-  const allCompleted = tomorrowTasks.data?.filter(t => t.isDone) ?? [];
+  const allIncomplete = tomorrowTasks.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
+  const allCompleted = tomorrowTasks.data?.filter(t => t.isDone && !lingeringIds.has(t.id)) ?? [];
 
   const incompleteTasks = allIncomplete.filter(t => {
     if (filterAreaId !== null && t.areaId !== filterAreaId) return false;
@@ -127,6 +129,7 @@ export default function TomorrowView() {
           defaultDoDate={tomorrow}
           emptyMessage="Nothing scheduled for tomorrow. Tasks pushed via Evening Sift will appear here."
           hideDoDate
+          onWillToggleComplete={(task, nowDone) => { if (nowDone) holdDuringGrace(task.id); }}
         />
       </div>
 

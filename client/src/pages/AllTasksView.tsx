@@ -2,15 +2,17 @@ import { useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import TaskList from "@/components/TaskList";
 import { Layers } from "lucide-react";
+import { useLingeringCompletions } from "@/hooks/useLingeringCompletions";
 
 export default function AllTasksView() {
   const tasksQuery = trpc.tasks.list.useQuery({});
   const usersQuery = trpc.users.list.useQuery();
   const areasQuery = trpc.areas.list.useQuery();
   const projectsQuery = trpc.projects.list.useQuery();
+  const { lingeringIds, holdDuringGrace } = useLingeringCompletions();
 
-  const incompleteTasks = tasksQuery.data?.filter(t => !t.isDone) ?? [];
-  const completedTasks = tasksQuery.data?.filter(t => t.isDone) ?? [];
+  const incompleteTasks = tasksQuery.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
+  const completedTasks = tasksQuery.data?.filter(t => t.isDone && !lingeringIds.has(t.id)) ?? [];
 
   const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
   const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
@@ -36,6 +38,7 @@ export default function AllTasksView() {
           areas={areasData}
           projects={projectsData}
           emptyMessage="No tasks yet. Create your first task to get started."
+          onWillToggleComplete={(task, nowDone) => { if (nowDone) holdDuringGrace(task.id); }}
         />
       </div>
 

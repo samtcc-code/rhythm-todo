@@ -20,7 +20,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useLocation } from "wouter";
 import { quadrantKeyFromFlags, quadrantLabel, quadrantPillClass } from "@/lib/quadrantStyles";
 import CompletionSparkles from "@/components/CompletionSparkles";
-import { COMPLETION_GRACE_MS } from "@/lib/completionGrace";
+import { useLingeringCompletions } from "@/hooks/useLingeringCompletions";
 
 function getTodayStr() {
   const d = new Date();
@@ -46,26 +46,6 @@ function getQuadrantLabel(isUrgent: boolean, isImportant: boolean) {
 
 function getQuadrantColor(isUrgent: boolean, isImportant: boolean) {
   return quadrantPillClass(quadrantKeyFromFlags(isUrgent, isImportant));
-}
-
-// Keeps a just-completed task's id "lingering" for COMPLETION_GRACE_MS so the
-// sparkle burst has time to play before the row moves to the Done section.
-function useLingeringCompletions() {
-  const [lingeringIds, setLingeringIds] = useState<Set<number>>(new Set());
-
-  const holdDuringGrace = (taskId: number) => {
-    setLingeringIds(prev => new Set(prev).add(taskId));
-    setTimeout(() => {
-      setLingeringIds(prev => {
-        if (!prev.has(taskId)) return prev;
-        const next = new Set(prev);
-        next.delete(taskId);
-        return next;
-      });
-    }, COMPLETION_GRACE_MS);
-  };
-
-  return { lingeringIds, holdDuringGrace };
 }
 
 function MobileIncompleteRow({
