@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import TaskList from "@/components/TaskList";
 import { useParams } from "wouter";
 import { Tag } from "lucide-react";
+import { useLingeringCompletions } from "@/hooks/useLingeringCompletions";
 
 export default function TagView() {
   const params = useParams<{ id: string }>();
@@ -13,10 +14,11 @@ export default function TagView() {
   const projectsQuery = trpc.projects.list.useQuery();
   const tasksQuery = trpc.tasks.list.useQuery({ tagId });
   const usersQuery = trpc.users.list.useQuery();
+  const { lingeringIds, holdDuringGrace } = useLingeringCompletions();
 
   const tag = tagsQuery.data?.find(t => t.id === tagId);
-  const incompleteTasks = tasksQuery.data?.filter(t => !t.isDone) ?? [];
-  const completedTasks = tasksQuery.data?.filter(t => t.isDone) ?? [];
+  const incompleteTasks = tasksQuery.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
+  const completedTasks = tasksQuery.data?.filter(t => t.isDone && !lingeringIds.has(t.id)) ?? [];
 
   const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
   const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
@@ -53,6 +55,7 @@ export default function TagView() {
           projects={projectsData}
           defaultTagIds={[tagId]}
           emptyMessage="No tasks with this tag yet."
+          onWillToggleComplete={(task, nowDone) => { if (nowDone) holdDuringGrace(task.id); }}
         />
       </div>
 

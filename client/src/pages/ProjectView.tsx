@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import TaskList from "@/components/TaskList";
 import { useParams } from "wouter";
 import { ClipboardList } from "lucide-react";
+import { useLingeringCompletions } from "@/hooks/useLingeringCompletions";
 
 export default function ProjectView() {
   const params = useParams<{ id: string }>();
@@ -12,10 +13,11 @@ export default function ProjectView() {
   const projectsQuery = trpc.projects.list.useQuery();
   const tasksQuery = trpc.tasks.list.useQuery({ projectId });
   const usersQuery = trpc.users.list.useQuery();
+  const { lingeringIds, holdDuringGrace } = useLingeringCompletions();
 
   const project = projectsQuery.data?.find(p => p.id === projectId);
-  const incompleteTasks = tasksQuery.data?.filter(t => !t.isDone) ?? [];
-  const completedTasks = tasksQuery.data?.filter(t => t.isDone) ?? [];
+  const incompleteTasks = tasksQuery.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
+  const completedTasks = tasksQuery.data?.filter(t => t.isDone && !lingeringIds.has(t.id)) ?? [];
 
   const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
   const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
@@ -47,6 +49,7 @@ export default function ProjectView() {
           projects={projectsData}
           defaultProjectId={projectId}
           emptyMessage="No tasks in this project yet."
+          onWillToggleComplete={(task, nowDone) => { if (nowDone) holdDuringGrace(task.id); }}
         />
       </div>
 
