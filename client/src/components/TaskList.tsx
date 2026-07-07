@@ -23,6 +23,7 @@ interface TaskListProps {
   defaultTagIds?: number[];
   emptyMessage?: string;
   hideDoDate?: boolean;
+  onWillToggleComplete?: (task: Task, nowDone: boolean) => void;
 }
 
 export default function TaskList({
@@ -38,6 +39,7 @@ export default function TaskList({
   defaultTagIds,
   emptyMessage = "No tasks yet",
   hideDoDate = false,
+  onWillToggleComplete,
 }: TaskListProps) {
   const utils = trpc.useUtils();
   const { showUndo } = useUndoToast();
@@ -95,6 +97,7 @@ export default function TaskList({
 
   const handleToggleComplete = useCallback((task: Task) => {
     const nowDone = !task.isDone;
+    onWillToggleComplete?.(task, nowDone);
     updateTask.mutate({ id: task.id, isDone: nowDone });
     if (nowDone) {
       showUndo({
@@ -102,7 +105,7 @@ export default function TaskList({
         onUndo: () => updateTask.mutate({ id: task.id, isDone: false }),
       });
     }
-  }, [updateTask, showUndo]);
+  }, [updateTask, showUndo, onWillToggleComplete]);
 
   const handleDelete = useCallback((task: Task) => {
     const snapshot = { ...task };
