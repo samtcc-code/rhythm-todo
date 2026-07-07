@@ -20,6 +20,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useLocation } from "wouter";
 import { quadrantKeyFromFlags, quadrantLabel, quadrantPillClass } from "@/lib/quadrantStyles";
 import CompletionSparkles from "@/components/CompletionSparkles";
+import { COMPLETION_GRACE_MS } from "@/lib/completionGrace";
 
 function getTodayStr() {
   const d = new Date();
@@ -45,6 +46,26 @@ function getQuadrantLabel(isUrgent: boolean, isImportant: boolean) {
 
 function getQuadrantColor(isUrgent: boolean, isImportant: boolean) {
   return quadrantPillClass(quadrantKeyFromFlags(isUrgent, isImportant));
+}
+
+// Keeps a just-completed task's id "lingering" for COMPLETION_GRACE_MS so the
+// sparkle burst has time to play before the row moves to the Done section.
+function useLingeringCompletions() {
+  const [lingeringIds, setLingeringIds] = useState<Set<number>>(new Set());
+
+  const holdDuringGrace = (taskId: number) => {
+    setLingeringIds(prev => new Set(prev).add(taskId));
+    setTimeout(() => {
+      setLingeringIds(prev => {
+        if (!prev.has(taskId)) return prev;
+        const next = new Set(prev);
+        next.delete(taskId);
+        return next;
+      });
+    }, COMPLETION_GRACE_MS);
+  };
+
+  return { lingeringIds, holdDuringGrace };
 }
 
 function MobileIncompleteRow({
@@ -117,9 +138,10 @@ function MobileTodayView() {
   const [dumpInput, setDumpInput] = useState("");
   const [siftSelected, setSiftSelected] = useState<Set<number>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { lingeringIds, holdDuringGrace } = useLingeringCompletions();
 
-  const incompleteTasks = todayTasks.data?.filter(t => !t.isDone) ?? [];
-  const completedTasks = todayTasks.data?.filter(t => t.isDone) ?? [];
+  const incompleteTasks = todayTasks.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
+  const completedTasks = todayTasks.data?.filter(t => t.isDone && !lingeringIds.has(t.id)) ?? [];
 
   const todayFormatted = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -444,7 +466,7 @@ function MobileTodayView() {
                 <MobileIncompleteRow
                   key={task.id}
                   task={task}
-                  onComplete={() => toggleTask.mutate({ id: task.id, isDone: true })}
+                  onComplete={() => { holdDuringGrace(task.id); toggleTask.mutate({ id: task.id, isDone: true }); }}
                   onFocus={() => setLocation(`/focus/${task.id}`)}
                 />
               ))}
@@ -509,9 +531,10 @@ function DesktopTodayView() {
 
   const [showEveningSift, setShowEveningSift] = useState(false);
   const [siftSelected, setSiftSelected] = useState<Set<number>>(new Set());
+  const { lingeringIds, holdDuringGrace } = useLingeringCompletions();
 
-  const allIncomplete = todayTasks.data?.filter(t => !t.isDone) ?? [];
-  const allCompleted = todayTasks.data?.filter(t => t.isDone) ?? [];
+  const allIncomplete = todayTasks.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
+  const allCompleted = todayTasks.data?.filter(t => t.isDone && !lingeringIds.has(t.id)) ?? [];
 
   const incompleteTasks = allIncomplete.filter(t => {
     if (filterAreaId !== null && t.areaId !== filterAreaId) return false;
@@ -660,6 +683,7 @@ function DesktopTodayView() {
           defaultDoDate={today}
           emptyMessage="Your day is clear. Add tasks or start a brain dump."
           hideDoDate
+          onWillToggleComplete={(task, nowDone) => { if (nowDone) holdDuringGrace(task.id); }}
         />
       </div>
 
