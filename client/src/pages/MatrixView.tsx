@@ -4,6 +4,7 @@ import TaskItem from "@/components/TaskItem";
 import TaskDetailPanel from "@/components/TaskDetailPanel";
 import { cn } from "@/lib/utils";
 import { quadrantCardClass, quadrantTextClass, quadrantLabel, type QuadrantKey } from "@/lib/quadrantStyles";
+import { COMPLETION_GRACE_MS } from "@/lib/completionGrace";
 
 const quadrants: Array<{
   key: QuadrantKey;
@@ -74,16 +75,40 @@ export default function MatrixView() {
 
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
+  // allTasks is server-filtered to isDone:false, so a just-completed task
+  // vanishes from allTasks.data on the next refetch. Keep a short-lived
+  // snapshot so the row (and its sparkle burst) stays visible briefly.
+  type MatrixTask = NonNullable<typeof allTasks.data>[number];
+  const [lingering, setLingering] = useState<Map<number, MatrixTask>>(new Map());
+
   const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
   const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
 
-  const tasksByQuadrant = (key: string) =>
-    allTasks.data?.filter(t => t.quadrant === key) ?? [];
+  const tasksByQuadrant = (key: string) => {
+    const fromQuery = allTasks.data?.filter(t => t.quadrant === key) ?? [];
+    const stillLingering = Array.from(lingering.values()).filter(
+      t => t.quadrant === key && !fromQuery.some(x => x.id === t.id)
+    );
+    return [...fromQuery, ...stillLingering];
+  };
 
   const moveToQuadrant = (taskId: number, targetKey: string) => {
     const flags = quadrantToFlags(targetKey);
     updateTask.mutate({ id: taskId, ...flags });
     if (selectedTaskId === taskId) setSelectedTaskId(null);
+  };
+
+  const handleToggleComplete = (task: MatrixTask) => {
+    setLingering(prev => new Map(prev).set(task.id, { ...task, isDone: true }));
+    updateTask.mutate({ id: task.id, isDone: true });
+    setTimeout(() => {
+      setLingering(prev => {
+        if (!prev.has(task.id)) return prev;
+        const next = new Map(prev);
+        next.delete(task.id);
+        return next;
+      });
+    }, COMPLETION_GRACE_MS);
   };
 
   return (
@@ -133,6 +158,7 @@ export default function MatrixView() {
                         <TaskItem
                           task={task}
                           onClick={() => setSelectedTaskId(task.id)}
+                          onToggleComplete={handleToggleComplete}
                           users={usersQuery.data}
                           areas={areasData}
                           projects={projectsData}
