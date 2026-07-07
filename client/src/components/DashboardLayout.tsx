@@ -233,8 +233,8 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed && (
                 <>
-                  <img src="/rhythm-check.png" alt="" className="h-5 w-5 shrink-0" />
                   <span className="font-semibold tracking-tight text-foreground truncate">Daily Rhythm</span>
+                  <img src="/rhythm-check.png" alt="" className="h-5 w-5 shrink-0 ml-auto" />
                 </>
               )}
             </div>

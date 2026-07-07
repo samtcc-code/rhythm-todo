@@ -114,7 +114,7 @@ export default function MatrixView() {
   return (
     <div className="space-y-8 md:space-y-6">
       <div>
-        <h1 className="text-3xl md:text-2xl font-semibold tracking-tight text-foreground">Eisenhower Matrix</h1>
+        <h1 className="text-3xl md:text-2xl font-semibold tracking-tight text-foreground page-title-glow">Eisenhower Matrix</h1>
         <p className="text-base md:text-sm text-muted-foreground mt-1">
           Click a task to edit it, or use the move buttons to reassign quadrants.
         </p>

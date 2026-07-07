@@ -27,7 +27,7 @@ export default function ProjectView() {
       <div>
         <div className="flex items-center gap-2">
           <ClipboardList className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground page-title-glow">
             {project?.name ?? "Project"}
           </h1>
         </div>
