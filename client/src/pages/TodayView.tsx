@@ -774,7 +774,7 @@ function DesktopTodayView() {
                 className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent/50 cursor-pointer"
                 onClick={() => toggleSiftItem(task.id)}
               >
-                <Checkbox checked={siftSelected.has(task.id)} onCheckedChange={() => toggleSiftItem(task.id)} className="h-4 w-4" />
+                <Checkbox checked={siftSelected.has(task.id)} className="h-4 w-4 pointer-events-none" />
                 <span className="text-sm flex-1">{task.title}</span>
                 <Badge variant="outline" className="text-[10px] px-1.5">
                   {getQuadrantLabel(task.isUrgent, task.isImportant)}
