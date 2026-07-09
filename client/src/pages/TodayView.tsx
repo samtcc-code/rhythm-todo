@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import TaskList from "@/components/TaskList";
 import { Button } from "@/components/ui/button";
@@ -495,6 +495,27 @@ function DesktopTodayView() {
   const [filterAreaId, setFilterAreaId] = useState<number | null>(null);
   const [filterProjectId, setFilterProjectId] = useState<number | null>(null);
 
+  // Quadrant pill filter — Do Now / Do Later / Delegate. All on by default.
+  // Persist per browser so overnight settings stick.
+  type QuadFilter = { doNow: boolean; doLater: boolean; delegate: boolean };
+  const QUAD_STORAGE_KEY = "today-filter-quadrants";
+  const DEFAULT_QUAD: QuadFilter = { doNow: true, doLater: true, delegate: true };
+  const [quadFilter, setQuadFilter] = useState<QuadFilter>(() => {
+    try {
+      const raw = localStorage.getItem(QUAD_STORAGE_KEY);
+      if (!raw) return DEFAULT_QUAD;
+      return { ...DEFAULT_QUAD, ...JSON.parse(raw) };
+    } catch {
+      return DEFAULT_QUAD;
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem(QUAD_STORAGE_KEY, JSON.stringify(quadFilter));
+  }, [quadFilter]);
+  const toggleQuad = (k: keyof QuadFilter) =>
+    setQuadFilter(prev => ({ ...prev, [k]: !prev[k] }));
+  const quadFilterActive = !quadFilter.doNow || !quadFilter.doLater || !quadFilter.delegate;
+
   const bulkMove = trpc.tasks.bulkMove.useMutation({
     onSuccess: () => { utils.tasks.list.invalidate(); },
   });
@@ -516,16 +537,16 @@ function DesktopTodayView() {
   const allIncomplete = todayTasks.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
   const allCompleted = todayTasks.data?.filter(t => t.isDone && !lingeringIds.has(t.id)) ?? [];
 
-  const incompleteTasks = allIncomplete.filter(t => {
+  const passesFilters = (t: { areaId: number | null; projectId: number | null; quadrant: string }) => {
     if (filterAreaId !== null && t.areaId !== filterAreaId) return false;
     if (filterProjectId !== null && t.projectId !== filterProjectId) return false;
+    if (t.quadrant === "doNow" && !quadFilter.doNow) return false;
+    if (t.quadrant === "doLater" && !quadFilter.doLater) return false;
+    if (t.quadrant === "delegate" && !quadFilter.delegate) return false;
     return true;
-  });
-  const completedTasks = allCompleted.filter(t => {
-    if (filterAreaId !== null && t.areaId !== filterAreaId) return false;
-    if (filterProjectId !== null && t.projectId !== filterProjectId) return false;
-    return true;
-  });
+  };
+  const incompleteTasks = allIncomplete.filter(passesFilters);
+  const completedTasks = allCompleted.filter(passesFilters);
 
   const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
   const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
@@ -641,8 +662,49 @@ function DesktopTodayView() {
             ))}
           </SelectContent>
         </Select>
-        {(filterAreaId !== null || filterProjectId !== null) && (
-          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={() => { setFilterAreaId(null); setFilterProjectId(null); }}>
+        {/* Divider between location filters and quadrant pills */}
+        <span className="hidden sm:block w-px h-5 bg-border" aria-hidden />
+
+        {/* Quadrant pill toggles — grayscale when off */}
+        <button
+          type="button"
+          onClick={() => toggleQuad("doNow")}
+          aria-pressed={quadFilter.doNow}
+          className={`h-7 px-3 rounded-full text-xs font-semibold border transition-colors ${
+            quadFilter.doNow
+              ? `${quadrantPillClass("doNow")} border-transparent`
+              : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+          }`}
+        >
+          Do Now
+        </button>
+        <button
+          type="button"
+          onClick={() => toggleQuad("doLater")}
+          aria-pressed={quadFilter.doLater}
+          className={`h-7 px-3 rounded-full text-xs font-semibold border transition-colors ${
+            quadFilter.doLater
+              ? `${quadrantPillClass("doLater")} border-[#B7CDCD]/70 dark:border-[#486D6E]/60`
+              : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+          }`}
+        >
+          Do Later
+        </button>
+        <button
+          type="button"
+          onClick={() => toggleQuad("delegate")}
+          aria-pressed={quadFilter.delegate}
+          className={`h-7 px-3 rounded-full text-xs font-semibold border transition-colors ${
+            quadFilter.delegate
+              ? `${quadrantPillClass("delegate")} border-[#FFE08A]/80 dark:border-[#806219]/70`
+              : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+          }`}
+        >
+          Delegate
+        </button>
+
+        {(filterAreaId !== null || filterProjectId !== null || quadFilterActive) && (
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={() => { setFilterAreaId(null); setFilterProjectId(null); setQuadFilter(DEFAULT_QUAD); }}>
             <X className="h-3 w-3 mr-1" />
             Clear
           </Button>
