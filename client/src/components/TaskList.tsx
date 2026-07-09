@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
+import { Reorder, useDragControls } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import TaskItem from "./TaskItem";
 import TaskDetailPanel from "./TaskDetailPanel";
@@ -26,6 +27,93 @@ interface TaskListProps {
   onWillToggleComplete?: (task: Task, nowDone: boolean) => void;
 }
 
+// One row inside the Reorder.Group. Owns its own drag controls so the grip
+// handle in TaskItem is the only surface that starts a drag (not the whole row).
+function SortableRow({
+  task,
+  isDetailOpen,
+  panelRef,
+  selectMode,
+  isSelected,
+  onDetailOpen,
+  onDetailClose,
+  onToggleComplete,
+  onDelete,
+  onToggleSelect,
+  onDetailToggleComplete,
+  users,
+  areas,
+  projects,
+  hideDoDate,
+}: {
+  task: Task;
+  isDetailOpen: boolean;
+  panelRef: React.RefObject<HTMLDivElement | null>;
+  selectMode: boolean;
+  isSelected: boolean;
+  onDetailOpen: () => void;
+  onDetailClose: () => void;
+  onToggleComplete: (task: Task) => void;
+  onDelete: (task: Task) => void;
+  onToggleSelect: () => void;
+  onDetailToggleComplete: (done: boolean) => void;
+  users?: { id: number; name: string | null }[];
+  areas?: { id: number; name: string }[];
+  projects?: { id: number; name: string }[];
+  hideDoDate: boolean;
+}) {
+  const controls = useDragControls();
+
+  const dragHandleProps = {
+    onPointerDown: (e: React.PointerEvent) => {
+      if (selectMode || isDetailOpen) return;
+      controls.start(e);
+    },
+    // Prevent the grip from being a click target that opens the detail panel
+    onClick: (e: React.MouseEvent) => e.stopPropagation(),
+  };
+
+  return (
+    <Reorder.Item
+      value={task}
+      dragListener={false}
+      dragControls={controls}
+      className="rounded-xl md:rounded-lg"
+      whileDrag={{
+        scale: 1.02,
+        boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+        cursor: "grabbing",
+      }}
+      transition={{ type: "spring", stiffness: 500, damping: 40 }}
+    >
+      {isDetailOpen ? (
+        <div ref={panelRef}>
+          <TaskDetailPanel
+            taskId={task.id}
+            onClose={onDetailClose}
+            onToggleComplete={onDetailToggleComplete}
+          />
+        </div>
+      ) : (
+        <TaskItem
+          task={task}
+          onClick={onDetailOpen}
+          onToggleComplete={onToggleComplete}
+          onDelete={onDelete}
+          users={users}
+          areas={areas}
+          projects={projects}
+          dragHandleProps={dragHandleProps}
+          hideDoDate={hideDoDate}
+          selectMode={selectMode}
+          isSelected={isSelected}
+          onToggleSelect={onToggleSelect}
+        />
+      )}
+    </Reorder.Item>
+  );
+}
+
 export default function TaskList({
   tasks,
   users,
@@ -48,10 +136,13 @@ export default function TaskList({
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showCreate, setShowCreate] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
-  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-  const handleDragRef = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  // Local optimistic order — updates instantly on drag, syncs to server via
+  // reorderTasks.mutate. Server invalidation will overwrite this with the
+  // canonical order on refetch.
+  const [items, setItems] = useState<Task[]>(tasks);
+  useEffect(() => { setItems(tasks); }, [tasks]);
 
   const selectMode = selectedIds.size > 0;
 
@@ -67,12 +158,10 @@ export default function TaskList({
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
-  // Clear selection when navigating between views
   useEffect(() => {
     setSelectedIds(new Set());
   }, [location]);
 
-  // Drop selections of tasks that disappear from the list
   useEffect(() => {
     setSelectedIds(prev => {
       if (prev.size === 0) return prev;
@@ -138,39 +227,20 @@ export default function TaskList({
     });
   };
 
-  const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
-    if (!handleDragRef.current) { e.preventDefault(); return; }
-    setDraggedIdx(idx);
-    if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
-  }, []);
+  const handleReorder = (newItems: Task[]) => {
+    setItems(newItems);
+    reorderTasks.mutate({ orderedIds: newItems.map(t => t.id) });
+  };
 
-  const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
-    e.preventDefault();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-    setDragOverIdx(idx);
-  }, []);
-
-  const handleDrop = useCallback((idx: number) => {
-    if (draggedIdx === null || draggedIdx === idx) {
-      setDraggedIdx(null); setDragOverIdx(null); handleDragRef.current = false; return;
+  const handleDetailToggleComplete = useCallback((taskId: number, title: string, done: boolean) => {
+    updateTask.mutate({ id: taskId, isDone: done });
+    if (done) {
+      showUndo({
+        message: `"${title}" completed`,
+        onUndo: () => updateTask.mutate({ id: taskId, isDone: false }),
+      });
     }
-    const newOrder = [...tasks];
-    const [moved] = newOrder.splice(draggedIdx, 1);
-    newOrder.splice(idx, 0, moved);
-    reorderTasks.mutate({ orderedIds: newOrder.map(t => t.id) });
-    setDraggedIdx(null); setDragOverIdx(null); handleDragRef.current = false;
-  }, [draggedIdx, tasks, reorderTasks]);
-
-  const handleDragEnd = useCallback(() => {
-    setDraggedIdx(null); setDragOverIdx(null); handleDragRef.current = false;
-  }, []);
-
-  const makeDragHandleProps = useCallback(() => ({
-    onMouseDown: () => { handleDragRef.current = true; },
-    onMouseUp: () => { handleDragRef.current = false; },
-    onTouchStart: () => { handleDragRef.current = true; },
-    onTouchEnd: () => { handleDragRef.current = false; },
-  }), []);
+  }, [updateTask, showUndo]);
 
   useEffect(() => {
     if (selectedTaskId === null) return;
@@ -202,57 +272,33 @@ export default function TaskList({
         </div>
       )}
 
-      <div className="space-y-1">
-        {tasks.map((task, idx) => (
-          <div key={task.id}>
-            {selectedTaskId === task.id && !selectMode ? (
-              <div ref={panelRef}>
-                <TaskDetailPanel
-                  taskId={task.id}
-                  onClose={() => setSelectedTaskId(null)}
-                  onToggleComplete={(done) => {
-                    updateTask.mutate({ id: task.id, isDone: done });
-                    if (done) {
-                      showUndo({
-                        message: `"${task.title}" completed`,
-                        onUndo: () => updateTask.mutate({ id: task.id, isDone: false }),
-                      });
-                    }
-                  }}
-                />
-              </div>
-            ) : (
-              <div
-                draggable={!selectMode}
-                onDragStart={e => handleDragStart(e, idx)}
-                onDragOver={e => handleDragOver(e, idx)}
-                onDrop={() => handleDrop(idx)}
-                onDragEnd={handleDragEnd}
-                className={`transition-all rounded-xl md:rounded-lg ${
-                  dragOverIdx === idx && draggedIdx !== null && draggedIdx !== idx
-                    ? "ring-2 ring-primary/50 ring-offset-2 md:ring-offset-1"
-                    : ""
-                } ${draggedIdx === idx ? "opacity-30 scale-[0.98]" : ""}`}
-              >
-                <TaskItem
-                  task={task}
-                  onClick={() => setSelectedTaskId(task.id)}
-                  onToggleComplete={handleToggleComplete}
-                  onDelete={handleDelete}
-                  users={users}
-                  areas={areas}
-                  projects={projects}
-                  dragHandleProps={makeDragHandleProps()}
-                  hideDoDate={hideDoDate}
-                  selectMode={selectMode}
-                  isSelected={selectedIds.has(task.id)}
-                  onToggleSelect={() => toggleSelect(task.id)}
-                />
-              </div>
-            )}
-          </div>
+      <Reorder.Group
+        axis="y"
+        values={items}
+        onReorder={handleReorder}
+        className="space-y-1 list-none p-0 m-0"
+      >
+        {items.map(task => (
+          <SortableRow
+            key={task.id}
+            task={task}
+            isDetailOpen={selectedTaskId === task.id && !selectMode}
+            panelRef={panelRef}
+            selectMode={selectMode}
+            isSelected={selectedIds.has(task.id)}
+            onDetailOpen={() => setSelectedTaskId(task.id)}
+            onDetailClose={() => setSelectedTaskId(null)}
+            onToggleComplete={handleToggleComplete}
+            onDelete={handleDelete}
+            onToggleSelect={() => toggleSelect(task.id)}
+            onDetailToggleComplete={done => handleDetailToggleComplete(task.id, task.title, done)}
+            users={users}
+            areas={areas}
+            projects={projects}
+            hideDoDate={hideDoDate}
+          />
         ))}
-      </div>
+      </Reorder.Group>
 
       {showCreateInline && (
         <div className="mt-3 md:mt-2">

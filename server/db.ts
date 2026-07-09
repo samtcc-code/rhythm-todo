@@ -243,8 +243,10 @@ export async function createTask(data: {
   const isImportant = data.isImportant ?? false;
   const quadrant = computeQuadrant(isUrgent, isImportant);
 
-  // If doDateToday is set, always sync doDate to today
-  const doDate = data.doDateToday ? getTodayStr() : (data.doDate ?? null);
+  // Prefer client-provided doDate (their local YYYY-MM-DD) — server clock may
+  // be UTC, which flips to tomorrow before the user's evening ends. Only fall
+  // back to server today when the caller sent doDateToday with no explicit date.
+  const doDate = data.doDate ?? (data.doDateToday ? getTodayStr() : null);
 
   const result = await db.insert(tasks).values({
     title: data.title,
