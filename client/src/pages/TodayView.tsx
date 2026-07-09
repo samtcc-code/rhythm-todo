@@ -10,10 +10,11 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { Sunrise, Sunset, ArrowRight, Plus, X, Check, Moon, Sun, Filter, RefreshCw, Target } from "lucide-react";
+import { Sunrise, Sunset, ArrowRight, Plus, X, Check, Moon, Sun, Filter, RefreshCw, Target, ChevronDown } from "lucide-react";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -492,11 +493,28 @@ function DesktopTodayView() {
   const projectsQuery = trpc.projects.list.useQuery();
   const utils = trpc.useUtils();
 
-  const [filterAreaId, setFilterAreaId] = useState<number | null>(null);
-  const [filterProjectId, setFilterProjectId] = useState<number | null>(null);
+  // Multi-select exclusion filters. Default = no exclusions = show everything.
+  // Click to uncheck in the popover = hide that area/project. Persist per browser.
+  const AREA_STORAGE_KEY = "today-filter-excluded-areas";
+  const PROJECT_STORAGE_KEY = "today-filter-excluded-projects";
+  const readIdList = (key: string): number[] => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter((x: unknown) => typeof x === "number") : [];
+    } catch { return []; }
+  };
+  const [excludedAreaIds, setExcludedAreaIds] = useState<number[]>(() => readIdList(AREA_STORAGE_KEY));
+  const [excludedProjectIds, setExcludedProjectIds] = useState<number[]>(() => readIdList(PROJECT_STORAGE_KEY));
+  useEffect(() => { localStorage.setItem(AREA_STORAGE_KEY, JSON.stringify(excludedAreaIds)); }, [excludedAreaIds]);
+  useEffect(() => { localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(excludedProjectIds)); }, [excludedProjectIds]);
+  const toggleAreaExclusion = (id: number) =>
+    setExcludedAreaIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const toggleProjectExclusion = (id: number) =>
+    setExcludedProjectIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   // Quadrant pill filter — Do Now / Do Later / Delegate. All on by default.
-  // Persist per browser so overnight settings stick.
   type QuadFilter = { doNow: boolean; doLater: boolean; delegate: boolean };
   const QUAD_STORAGE_KEY = "today-filter-quadrants";
   const DEFAULT_QUAD: QuadFilter = { doNow: true, doLater: true, delegate: true };
@@ -538,8 +556,8 @@ function DesktopTodayView() {
   const allCompleted = todayTasks.data?.filter(t => t.isDone && !lingeringIds.has(t.id)) ?? [];
 
   const passesFilters = (t: { areaId: number | null; projectId: number | null; quadrant: string }) => {
-    if (filterAreaId !== null && t.areaId !== filterAreaId) return false;
-    if (filterProjectId !== null && t.projectId !== filterProjectId) return false;
+    if (t.areaId !== null && excludedAreaIds.includes(t.areaId)) return false;
+    if (t.projectId !== null && excludedProjectIds.includes(t.projectId)) return false;
     if (t.quadrant === "doNow" && !quadFilter.doNow) return false;
     if (t.quadrant === "doLater" && !quadFilter.doLater) return false;
     if (t.quadrant === "delegate" && !quadFilter.delegate) return false;
@@ -634,34 +652,105 @@ function DesktopTodayView() {
           <Filter className="h-3.5 w-3.5" />
           Filter:
         </div>
-        <Select
-          value={filterAreaId !== null ? String(filterAreaId) : "all"}
-          onValueChange={v => setFilterAreaId(v === "all" ? null : Number(v))}
-        >
-          <SelectTrigger className="h-8 w-[160px] text-xs">
-            <SelectValue placeholder="All Areas" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Areas</SelectItem>
-            {areasData.map(a => (
-              <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={filterProjectId !== null ? String(filterProjectId) : "all"}
-          onValueChange={v => setFilterProjectId(v === "all" ? null : Number(v))}
-        >
-          <SelectTrigger className="h-8 w-[160px] text-xs">
-            <SelectValue placeholder="All Projects" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Projects</SelectItem>
-            {projectsData.map(p => (
-              <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Areas — multi-select popover. Accent border when any exclusion is active. */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "h-8 px-3 text-xs rounded-md border flex items-center gap-1.5 transition-colors",
+                excludedAreaIds.length > 0
+                  ? "border-primary/60 bg-primary/5 text-primary"
+                  : "border-border text-muted-foreground hover:bg-accent"
+              )}
+            >
+              Areas <ChevronDown className="h-3 w-3" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-52 p-1">
+            <div className="max-h-64 overflow-y-auto">
+              {areasData.length === 0 && (
+                <p className="text-xs text-muted-foreground px-2 py-1.5">No areas yet.</p>
+              )}
+              {areasData.map(a => {
+                const included = !excludedAreaIds.includes(a.id);
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => toggleAreaExclusion(a.id)}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent text-sm text-left"
+                  >
+                    <Checkbox checked={included} className="h-4 w-4 pointer-events-none" />
+                    <span className="truncate">{a.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {excludedAreaIds.length > 0 && (
+              <>
+                <div className="border-t my-1" />
+                <button
+                  type="button"
+                  onClick={() => setExcludedAreaIds([])}
+                  className="w-full text-left px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent rounded"
+                >
+                  Show all
+                </button>
+              </>
+            )}
+          </PopoverContent>
+        </Popover>
+
+        {/* Projects — same pattern */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "h-8 px-3 text-xs rounded-md border flex items-center gap-1.5 transition-colors",
+                excludedProjectIds.length > 0
+                  ? "border-primary/60 bg-primary/5 text-primary"
+                  : "border-border text-muted-foreground hover:bg-accent"
+              )}
+            >
+              Projects <ChevronDown className="h-3 w-3" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-52 p-1">
+            <div className="max-h-64 overflow-y-auto">
+              {projectsData.length === 0 && (
+                <p className="text-xs text-muted-foreground px-2 py-1.5">No projects yet.</p>
+              )}
+              {projectsData.map(p => {
+                const included = !excludedProjectIds.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => toggleProjectExclusion(p.id)}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent text-sm text-left"
+                  >
+                    <Checkbox checked={included} className="h-4 w-4 pointer-events-none" />
+                    <span className="truncate">{p.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {excludedProjectIds.length > 0 && (
+              <>
+                <div className="border-t my-1" />
+                <button
+                  type="button"
+                  onClick={() => setExcludedProjectIds([])}
+                  className="w-full text-left px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent rounded"
+                >
+                  Show all
+                </button>
+              </>
+            )}
+          </PopoverContent>
+        </Popover>
         {/* Divider between location filters and quadrant pills */}
         <span className="hidden sm:block w-px h-5 bg-border" aria-hidden />
 
@@ -703,8 +792,8 @@ function DesktopTodayView() {
           Delegate
         </button>
 
-        {(filterAreaId !== null || filterProjectId !== null || quadFilterActive) && (
-          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={() => { setFilterAreaId(null); setFilterProjectId(null); setQuadFilter(DEFAULT_QUAD); }}>
+        {(excludedAreaIds.length > 0 || excludedProjectIds.length > 0 || quadFilterActive) && (
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={() => { setExcludedAreaIds([]); setExcludedProjectIds([]); setQuadFilter(DEFAULT_QUAD); }}>
             <X className="h-3 w-3 mr-1" />
             Clear
           </Button>
