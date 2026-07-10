@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import TaskList from "@/components/TaskList";
 import { Button } from "@/components/ui/button";
@@ -493,43 +493,18 @@ function DesktopTodayView() {
   const projectsQuery = trpc.projects.list.useQuery();
   const utils = trpc.useUtils();
 
-  // Multi-select exclusion filters. Default = no exclusions = show everything.
-  // Click to uncheck in the popover = hide that area/project. Persist per browser.
-  const AREA_STORAGE_KEY = "today-filter-excluded-areas";
-  const PROJECT_STORAGE_KEY = "today-filter-excluded-projects";
-  const readIdList = (key: string): number[] => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed.filter((x: unknown) => typeof x === "number") : [];
-    } catch { return []; }
-  };
-  const [excludedAreaIds, setExcludedAreaIds] = useState<number[]>(() => readIdList(AREA_STORAGE_KEY));
-  const [excludedProjectIds, setExcludedProjectIds] = useState<number[]>(() => readIdList(PROJECT_STORAGE_KEY));
-  useEffect(() => { localStorage.setItem(AREA_STORAGE_KEY, JSON.stringify(excludedAreaIds)); }, [excludedAreaIds]);
-  useEffect(() => { localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(excludedProjectIds)); }, [excludedProjectIds]);
+  // Session-only filters. Reset on reload / route change — tunnel focus, not
+  // a persistent preference.
+  const [excludedAreaIds, setExcludedAreaIds] = useState<number[]>([]);
+  const [excludedProjectIds, setExcludedProjectIds] = useState<number[]>([]);
   const toggleAreaExclusion = (id: number) =>
     setExcludedAreaIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   const toggleProjectExclusion = (id: number) =>
     setExcludedProjectIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
-  // Quadrant pill filter — Do Now / Do Later / Delegate. All on by default.
   type QuadFilter = { doNow: boolean; doLater: boolean; delegate: boolean };
-  const QUAD_STORAGE_KEY = "today-filter-quadrants";
   const DEFAULT_QUAD: QuadFilter = { doNow: true, doLater: true, delegate: true };
-  const [quadFilter, setQuadFilter] = useState<QuadFilter>(() => {
-    try {
-      const raw = localStorage.getItem(QUAD_STORAGE_KEY);
-      if (!raw) return DEFAULT_QUAD;
-      return { ...DEFAULT_QUAD, ...JSON.parse(raw) };
-    } catch {
-      return DEFAULT_QUAD;
-    }
-  });
-  useEffect(() => {
-    localStorage.setItem(QUAD_STORAGE_KEY, JSON.stringify(quadFilter));
-  }, [quadFilter]);
+  const [quadFilter, setQuadFilter] = useState<QuadFilter>(DEFAULT_QUAD);
   const toggleQuad = (k: keyof QuadFilter) =>
     setQuadFilter(prev => ({ ...prev, [k]: !prev[k] }));
   const quadFilterActive = !quadFilter.doNow || !quadFilter.doLater || !quadFilter.delegate;
