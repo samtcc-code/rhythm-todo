@@ -10,6 +10,11 @@ import { Plus } from "lucide-react";
 import type { Task } from "../../../drizzle/schema";
 import { useUndoToast } from "@/hooks/useUndoToast";
 
+function getTodayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 interface TaskListProps {
   tasks: Task[];
   users?: { id: number; name: string | null }[];
@@ -128,9 +133,14 @@ export default function TaskList({
 
   const handleCreate = () => {
     if (!newTitle.trim()) return;
+    // A new task defaults to "today" unless the page says otherwise (a
+    // specific date via defaultDoDate, or Someday). That "today" has to be
+    // the browser's local date - the server's clock is UTC on Render and
+    // would otherwise stamp it a day off for anyone west of UTC.
+    const doDate = defaultDoDate ?? (defaultDoDateSomeday ? null : getTodayStr());
     createTask.mutate({
       title: newTitle.trim(),
-      doDate: defaultDoDate ?? null,
+      doDate,
       doDateSomeday: defaultDoDateSomeday ?? false,
       areaId: defaultAreaId ?? null,
       projectId: defaultProjectId ?? null,

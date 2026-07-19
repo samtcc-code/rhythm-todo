@@ -174,6 +174,7 @@ function MobileTodayView() {
         title: item.title,
         isUrgent: item.isUrgent,
         isImportant: item.isImportant,
+        doDate: item.forToday ? today : null,
         doDateToday: item.forToday,
         doDateSomeday: !item.forToday,
       });
@@ -552,6 +553,7 @@ function DesktopTodayView() {
         title: item.title,
         isUrgent: item.isUrgent,
         isImportant: item.isImportant,
+        doDate: item.forToday ? today : null,
         doDateToday: item.forToday,
         doDateSomeday: !item.forToday,
       });

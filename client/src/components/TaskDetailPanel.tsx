@@ -26,6 +26,11 @@ interface TaskDetailPanelProps {
   onToggleComplete?: (isDone: boolean) => void;
 }
 
+function getTodayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function getTomorrowStr(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
@@ -295,7 +300,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
                 }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">No date</button>
                 <button onClick={() => {
                   setDoDateType("today"); setDoDate("");
-                  updateTask.mutate({ id: taskId, doDate: null, doDateSomeday: false, doDateToday: true });
+                  updateTask.mutate({ id: taskId, doDate: getTodayStr(), doDateSomeday: false, doDateToday: true });
                 }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">Today</button>
                 <button onClick={() => {
                   const tomorrow = getTomorrowStr();

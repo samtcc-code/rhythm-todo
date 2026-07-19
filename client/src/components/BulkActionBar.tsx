@@ -10,6 +10,11 @@ import {
   Calendar, FolderOpen, ClipboardList, Tag as TagIcon, User, Trash2, X,
 } from "lucide-react";
 
+function getTodayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function getTomorrowStr(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
@@ -134,7 +139,7 @@ export default function BulkActionBar({
               No date
             </button>
             <button
-              onClick={() => apply({ doDate: null, doDateSomeday: false, doDateToday: true })}
+              onClick={() => apply({ doDate: getTodayStr(), doDateSomeday: false, doDateToday: true })}
               className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors"
             >
               Today

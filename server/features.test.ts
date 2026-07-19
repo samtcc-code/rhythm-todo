@@ -289,6 +289,24 @@ describe("tasks", () => {
     expect(task!.isDone).toBe(false);
   });
 
+  it("pins doDateToday only when the caller gave no date info at all", async () => {
+    const db = await import("./db") as any;
+    const caller = getCaller();
+    db.createTask.mockClear();
+
+    await caller.tasks.create({ title: "No date info given" });
+    expect(db.createTask.mock.calls.at(-1)![0]).toMatchObject({ doDateToday: true });
+
+    await caller.tasks.create({ title: "Scheduled for a specific day", doDate: "2026-08-01" });
+    expect(db.createTask.mock.calls.at(-1)![0]).toMatchObject({ doDateToday: false });
+
+    await caller.tasks.create({ title: "Someday", doDateSomeday: true });
+    expect(db.createTask.mock.calls.at(-1)![0]).toMatchObject({ doDateToday: false });
+
+    await caller.tasks.create({ title: "Explicitly not pinned", doDate: "2026-08-01", doDateToday: false });
+    expect(db.createTask.mock.calls.at(-1)![0]).toMatchObject({ doDateToday: false });
+  });
+
   it("computes Eisenhower quadrant correctly", async () => {
     const caller = getCaller();
 
