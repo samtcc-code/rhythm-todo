@@ -1,5 +1,6 @@
 import { eq, and, or, sql, isNull, inArray, asc, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
+import crypto from "crypto";
 import {
   InsertUser, users,
   areas, InsertArea,
@@ -8,6 +9,7 @@ import {
   tasks, InsertTask,
   subtasks, InsertSubtask,
   taskTags, InsertTaskTag,
+  mcpTokens,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -391,6 +393,47 @@ export async function getTaskTagIds(taskId: number): Promise<number[]> {
   const db = await getDb();
   const rows = await db.select({ tagId: taskTags.tagId }).from(taskTags).where(eq(taskTags.taskId, taskId));
   return rows.map(r => r.tagId);
+}
+
+// ─── MCP Tokens ──────────────────────────────────────────────────
+
+function hashMcpToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+// Generates a new bearer token, stores only its hash, and returns the
+// plaintext once. There is no way to retrieve the plaintext again.
+export async function createMcpToken(label: string): Promise<{ id: number; token: string }> {
+  const db = await getDb();
+  const token = crypto.randomBytes(32).toString("hex");
+  const result = await db.insert(mcpTokens)
+    .values({ label, tokenHash: hashMcpToken(token) })
+    .returning({ id: mcpTokens.id });
+  return { id: result[0].id, token };
+}
+
+// Returns the token record if it exists and hasn't been revoked, else null.
+export async function verifyMcpToken(token: string) {
+  const db = await getDb();
+  const result = await db.select().from(mcpTokens).where(eq(mcpTokens.tokenHash, hashMcpToken(token))).limit(1);
+  const record = result[0];
+  if (!record || record.revokedAt) return null;
+  return record;
+}
+
+export async function listMcpTokens() {
+  const db = await getDb();
+  return db.select({
+    id: mcpTokens.id,
+    label: mcpTokens.label,
+    createdAt: mcpTokens.createdAt,
+    revokedAt: mcpTokens.revokedAt,
+  }).from(mcpTokens).orderBy(asc(mcpTokens.id));
+}
+
+export async function revokeMcpToken(id: number) {
+  const db = await getDb();
+  await db.update(mcpTokens).set({ revokedAt: new Date() }).where(eq(mcpTokens.id, id));
 }
 
 // ─── Clean Up function ───────────────────────────────────────────────────
