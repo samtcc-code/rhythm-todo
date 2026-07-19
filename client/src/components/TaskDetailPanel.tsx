@@ -162,6 +162,7 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
       doDate: doDateType === "date" && doDate ? doDate : null,
       doDateSomeday: doDateType === "someday",
       doDateToday: doDateType === "today",
+      today: getTodayStr(),
       dueDate: dueDate || null,
       ownerId: ownerId !== "none" ? parseInt(ownerId) : null,
       areaId: areaId !== "none" ? parseInt(areaId) : null,
@@ -296,25 +297,25 @@ export default function TaskDetailPanel({ taskId, onClose, onToggleComplete }: T
               <div className="space-y-1">
                 <button onClick={() => {
                   setDoDateType("none"); setDoDate("");
-                  updateTask.mutate({ id: taskId, doDate: null, doDateSomeday: false, doDateToday: false });
+                  updateTask.mutate({ id: taskId, doDate: null, doDateSomeday: false, doDateToday: false, today: getTodayStr() });
                 }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">No date</button>
                 <button onClick={() => {
                   setDoDateType("today"); setDoDate("");
-                  updateTask.mutate({ id: taskId, doDate: getTodayStr(), doDateSomeday: false, doDateToday: true });
+                  updateTask.mutate({ id: taskId, doDate: getTodayStr(), doDateSomeday: false, doDateToday: true, today: getTodayStr() });
                 }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">Today</button>
                 <button onClick={() => {
                   const tomorrow = getTomorrowStr();
                   setDoDateType("date"); setDoDate(tomorrow);
-                  updateTask.mutate({ id: taskId, doDate: tomorrow, doDateSomeday: false, doDateToday: false });
+                  updateTask.mutate({ id: taskId, doDate: tomorrow, doDateSomeday: false, doDateToday: false, today: getTodayStr() });
                 }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">Tomorrow</button>
                 <button onClick={() => {
                   setDoDateType("someday"); setDoDate("");
-                  updateTask.mutate({ id: taskId, doDate: null, doDateSomeday: true, doDateToday: false });
+                  updateTask.mutate({ id: taskId, doDate: null, doDateSomeday: true, doDateToday: false, today: getTodayStr() });
                 }} className="w-full text-left text-sm px-2 py-1.5 rounded hover:bg-accent transition-colors">Someday</button>
                 <div className="px-2 py-1">
                   <input type="date" value={doDate} onChange={e => {
                     setDoDateType("date"); setDoDate(e.target.value);
-                    updateTask.mutate({ id: taskId, doDate: e.target.value, doDateSomeday: false, doDateToday: false });
+                    updateTask.mutate({ id: taskId, doDate: e.target.value, doDateSomeday: false, doDateToday: false, today: getTodayStr() });
                   }} className="w-full text-sm border rounded px-2 py-1" />
                 </div>
               </div>
