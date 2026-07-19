@@ -343,6 +343,32 @@ describe("tasks", () => {
     expect(t3!.doDate).toBe("2099-01-01");
   });
 
+  it("update's future-date urgency-demote uses the caller's own today, not the server's clock", async () => {
+    const caller = getCaller();
+    const { id } = await caller.tasks.create({ title: "Do Now task", isUrgent: true, isImportant: true });
+
+    // The real system clock is around 2026. This doDate is technically in
+    // the future relative to that, but the caller says their own today is
+    // far past it - if the demote heuristic used the server's real clock
+    // instead of this caller-supplied value, it would wrongly fire here.
+    await caller.tasks.update({ id, doDate: "2030-01-01", today: "2077-06-15" });
+
+    const task = await caller.tasks.get({ id });
+    expect(task!.isUrgent).toBe(true);
+    expect(task!.isImportant).toBe(true);
+  });
+
+  it("bulkUpdate's future-date urgency-demote uses the caller's own today, not the server's clock", async () => {
+    const caller = getCaller();
+    const { id } = await caller.tasks.create({ title: "Do Now task", isUrgent: true, isImportant: true });
+
+    await caller.tasks.bulkUpdate({ taskIds: [id], doDate: "2030-01-01", today: "2077-06-15" });
+
+    const task = await caller.tasks.get({ id });
+    expect(task!.isUrgent).toBe(true);
+    expect(task!.isImportant).toBe(true);
+  });
+
   it("computes Eisenhower quadrant correctly", async () => {
     const caller = getCaller();
 

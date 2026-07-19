@@ -174,14 +174,17 @@ export const appRouter = router({
         projectId: z.number().nullable().optional(),
         sortOrder: z.number().optional(),
         tagIds: z.array(z.number()).optional(),
+        // The caller's own local "today", used below instead of this
+        // server's UTC clock. Optional for backward compatibility.
+        today: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { id, ...data } = input;
+        const { id, today, ...data } = input;
 
         if (
           data.doDate !== undefined &&
           data.doDate !== null &&
-          data.doDate > todayString() &&
+          data.doDate > (today ?? todayString()) &&
           data.isUrgent === undefined &&
           data.isImportant === undefined
         ) {
@@ -231,15 +234,16 @@ export const appRouter = router({
         areaId: z.number().nullable().optional(),
         projectId: z.number().nullable().optional(),
         tagIds: z.array(z.number()).optional(),
+        today: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { taskIds, ...data } = input;
+        const { taskIds, today, ...data } = input;
         for (const id of taskIds) {
           const perTask = { ...data };
           if (
             perTask.doDate !== undefined &&
             perTask.doDate !== null &&
-            perTask.doDate > todayString() &&
+            perTask.doDate > (today ?? todayString()) &&
             perTask.isUrgent === undefined &&
             perTask.isImportant === undefined
           ) {

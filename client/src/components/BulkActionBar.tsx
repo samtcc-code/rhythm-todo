@@ -58,7 +58,7 @@ export default function BulkActionBar({
   const [tagDraft, setTagDraft] = useState<Set<number>>(new Set());
 
   const apply = (data: Record<string, unknown>) => {
-    bulkUpdate.mutate({ taskIds, ...data } as any);
+    bulkUpdate.mutate({ taskIds, today: getTodayStr(), ...data } as any);
   };
 
   return (
