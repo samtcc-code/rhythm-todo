@@ -10,10 +10,11 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
-import { Sunrise, Sunset, ArrowRight, Plus, X, Check, Moon, Sun, Filter, RefreshCw, Target } from "lucide-react";
+import { Sunrise, Sunset, ArrowRight, Plus, X, Check, Moon, Sun, Filter, RefreshCw, Target, ChevronDown } from "lucide-react";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -372,7 +373,7 @@ function MobileTodayView() {
       <div className="flex items-center justify-between px-6 py-5 safe-area-top">
         <div className="flex items-center gap-2.5">
           <img src="/rhythm-check.png" alt="" className="h-7 w-7 shrink-0" />
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Rhythm</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground page-title-glow">Rhythm</h1>
         </div>
         <button
           onClick={toggleTheme}
@@ -493,8 +494,21 @@ function DesktopTodayView() {
   const projectsQuery = trpc.projects.list.useQuery();
   const utils = trpc.useUtils();
 
-  const [filterAreaId, setFilterAreaId] = useState<number | null>(null);
-  const [filterProjectId, setFilterProjectId] = useState<number | null>(null);
+  // Session-only filters. Reset on reload / route change — tunnel focus, not
+  // a persistent preference.
+  const [excludedAreaIds, setExcludedAreaIds] = useState<number[]>([]);
+  const [excludedProjectIds, setExcludedProjectIds] = useState<number[]>([]);
+  const toggleAreaExclusion = (id: number) =>
+    setExcludedAreaIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const toggleProjectExclusion = (id: number) =>
+    setExcludedProjectIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  type QuadFilter = { doNow: boolean; doLater: boolean; delegate: boolean };
+  const DEFAULT_QUAD: QuadFilter = { doNow: true, doLater: true, delegate: true };
+  const [quadFilter, setQuadFilter] = useState<QuadFilter>(DEFAULT_QUAD);
+  const toggleQuad = (k: keyof QuadFilter) =>
+    setQuadFilter(prev => ({ ...prev, [k]: !prev[k] }));
+  const quadFilterActive = !quadFilter.doNow || !quadFilter.doLater || !quadFilter.delegate;
 
   const bulkMove = trpc.tasks.bulkMove.useMutation({
     onSuccess: () => { utils.tasks.list.invalidate(); },
@@ -517,16 +531,16 @@ function DesktopTodayView() {
   const allIncomplete = todayTasks.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
   const allCompleted = todayTasks.data?.filter(t => t.isDone && !lingeringIds.has(t.id)) ?? [];
 
-  const incompleteTasks = allIncomplete.filter(t => {
-    if (filterAreaId !== null && t.areaId !== filterAreaId) return false;
-    if (filterProjectId !== null && t.projectId !== filterProjectId) return false;
+  const passesFilters = (t: { areaId: number | null; projectId: number | null; quadrant: string }) => {
+    if (t.areaId !== null && excludedAreaIds.includes(t.areaId)) return false;
+    if (t.projectId !== null && excludedProjectIds.includes(t.projectId)) return false;
+    if (t.quadrant === "doNow" && !quadFilter.doNow) return false;
+    if (t.quadrant === "doLater" && !quadFilter.doLater) return false;
+    if (t.quadrant === "delegate" && !quadFilter.delegate) return false;
     return true;
-  });
-  const completedTasks = allCompleted.filter(t => {
-    if (filterAreaId !== null && t.areaId !== filterAreaId) return false;
-    if (filterProjectId !== null && t.projectId !== filterProjectId) return false;
-    return true;
-  });
+  };
+  const incompleteTasks = allIncomplete.filter(passesFilters);
+  const completedTasks = allCompleted.filter(passesFilters);
 
   const areasData = useMemo(() => areasQuery.data?.map(a => ({ id: a.id, name: a.name })) ?? [], [areasQuery.data]);
   const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
@@ -591,7 +605,7 @@ function DesktopTodayView() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Today</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground page-title-glow">Today</h1>
           <p className="text-sm text-muted-foreground mt-1">{todayFormatted}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -615,36 +629,148 @@ function DesktopTodayView() {
           <Filter className="h-3.5 w-3.5" />
           Filter:
         </div>
-        <Select
-          value={filterAreaId !== null ? String(filterAreaId) : "all"}
-          onValueChange={v => setFilterAreaId(v === "all" ? null : Number(v))}
+        {/* Areas — multi-select popover. Accent border when any exclusion is active. */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "h-8 px-3 text-xs rounded-md border flex items-center gap-1.5 transition-colors",
+                excludedAreaIds.length > 0
+                  ? "border-primary/60 bg-primary/5 text-primary"
+                  : "border-border text-muted-foreground hover:bg-accent"
+              )}
+            >
+              Areas <ChevronDown className="h-3 w-3" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-52 p-1">
+            <div className="max-h-64 overflow-y-auto">
+              {areasData.length === 0 && (
+                <p className="text-xs text-muted-foreground px-2 py-1.5">No areas yet.</p>
+              )}
+              {areasData.map(a => {
+                const included = !excludedAreaIds.includes(a.id);
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => toggleAreaExclusion(a.id)}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent text-sm text-left"
+                  >
+                    <Checkbox checked={included} className="h-4 w-4 pointer-events-none" />
+                    <span className="truncate">{a.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {excludedAreaIds.length > 0 && (
+              <>
+                <div className="border-t my-1" />
+                <button
+                  type="button"
+                  onClick={() => setExcludedAreaIds([])}
+                  className="w-full text-left px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent rounded"
+                >
+                  Show all
+                </button>
+              </>
+            )}
+          </PopoverContent>
+        </Popover>
+
+        {/* Projects — same pattern */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "h-8 px-3 text-xs rounded-md border flex items-center gap-1.5 transition-colors",
+                excludedProjectIds.length > 0
+                  ? "border-primary/60 bg-primary/5 text-primary"
+                  : "border-border text-muted-foreground hover:bg-accent"
+              )}
+            >
+              Projects <ChevronDown className="h-3 w-3" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-52 p-1">
+            <div className="max-h-64 overflow-y-auto">
+              {projectsData.length === 0 && (
+                <p className="text-xs text-muted-foreground px-2 py-1.5">No projects yet.</p>
+              )}
+              {projectsData.map(p => {
+                const included = !excludedProjectIds.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => toggleProjectExclusion(p.id)}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent text-sm text-left"
+                  >
+                    <Checkbox checked={included} className="h-4 w-4 pointer-events-none" />
+                    <span className="truncate">{p.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {excludedProjectIds.length > 0 && (
+              <>
+                <div className="border-t my-1" />
+                <button
+                  type="button"
+                  onClick={() => setExcludedProjectIds([])}
+                  className="w-full text-left px-2 py-1.5 text-xs text-muted-foreground hover:bg-accent rounded"
+                >
+                  Show all
+                </button>
+              </>
+            )}
+          </PopoverContent>
+        </Popover>
+        {/* Divider between location filters and quadrant pills */}
+        <span className="hidden sm:block w-px h-5 bg-border" aria-hidden />
+
+        {/* Quadrant pill toggles — grayscale when off */}
+        <button
+          type="button"
+          onClick={() => toggleQuad("doNow")}
+          aria-pressed={quadFilter.doNow}
+          className={`h-7 px-3 rounded-full text-xs font-semibold border transition-colors ${
+            quadFilter.doNow
+              ? `${quadrantPillClass("doNow")} border-transparent`
+              : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+          }`}
         >
-          <SelectTrigger className="h-8 w-[160px] text-xs">
-            <SelectValue placeholder="All Areas" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Areas</SelectItem>
-            {areasData.map(a => (
-              <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={filterProjectId !== null ? String(filterProjectId) : "all"}
-          onValueChange={v => setFilterProjectId(v === "all" ? null : Number(v))}
+          Do Now
+        </button>
+        <button
+          type="button"
+          onClick={() => toggleQuad("doLater")}
+          aria-pressed={quadFilter.doLater}
+          className={`h-7 px-3 rounded-full text-xs font-semibold border transition-colors ${
+            quadFilter.doLater
+              ? `${quadrantPillClass("doLater")} border-[#B7CDCD]/70 dark:border-[#486D6E]/60`
+              : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+          }`}
         >
-          <SelectTrigger className="h-8 w-[160px] text-xs">
-            <SelectValue placeholder="All Projects" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Projects</SelectItem>
-            {projectsData.map(p => (
-              <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {(filterAreaId !== null || filterProjectId !== null) && (
-          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={() => { setFilterAreaId(null); setFilterProjectId(null); }}>
+          Do Later
+        </button>
+        <button
+          type="button"
+          onClick={() => toggleQuad("delegate")}
+          aria-pressed={quadFilter.delegate}
+          className={`h-7 px-3 rounded-full text-xs font-semibold border transition-colors ${
+            quadFilter.delegate
+              ? `${quadrantPillClass("delegate")} border-[#FFE08A]/80 dark:border-[#806219]/70`
+              : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+          }`}
+        >
+          Delegate
+        </button>
+
+        {(excludedAreaIds.length > 0 || excludedProjectIds.length > 0 || quadFilterActive) && (
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={() => { setExcludedAreaIds([]); setExcludedProjectIds([]); setQuadFilter(DEFAULT_QUAD); }}>
             <X className="h-3 w-3 mr-1" />
             Clear
           </Button>
@@ -776,7 +902,7 @@ function DesktopTodayView() {
                 className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent/50 cursor-pointer"
                 onClick={() => toggleSiftItem(task.id)}
               >
-                <Checkbox checked={siftSelected.has(task.id)} onCheckedChange={() => toggleSiftItem(task.id)} className="h-4 w-4" />
+                <Checkbox checked={siftSelected.has(task.id)} className="h-4 w-4 pointer-events-none" />
                 <span className="text-sm flex-1">{task.title}</span>
                 <Badge variant="outline" className="text-[10px] px-1.5">
                   {getQuadrantLabel(task.isUrgent, task.isImportant)}

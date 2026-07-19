@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import TaskList from "@/components/TaskList";
 import { Button } from "@/components/ui/button";
-import { Sunrise, Filter, X } from "lucide-react";
+import { Filter, X } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -54,8 +54,7 @@ export default function TomorrowView() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">
-            <Sunrise className="h-5 w-5 text-amber-500" />
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground page-title-glow">
             Tomorrow
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{tomorrowFormatted}</p>

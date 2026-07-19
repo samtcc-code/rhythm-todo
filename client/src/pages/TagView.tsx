@@ -33,7 +33,7 @@ export default function TagView() {
               style={{ backgroundColor: tag.color ?? "#6366f1" }}
             />
           )}
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground page-title-glow">
             {tag?.name ?? "Tag"}
           </h1>
         </div>
