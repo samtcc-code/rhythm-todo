@@ -93,3 +93,17 @@ export const taskTags = pgTable("task_tags", {
 
 export type TaskTag = typeof taskTags.$inferSelect;
 export type InsertTaskTag = typeof taskTags.$inferInsert;
+
+// Bearer tokens for the MCP server (server/mcp). Each token grants read +
+// create/update access; there is deliberately no field or tool that lets a
+// token holder complete a task or delete anything.
+export const mcpTokens = pgTable("mcp_tokens", {
+  id: serial("id").primaryKey(),
+  label: varchar("label", { length: 100 }).notNull(),
+  tokenHash: varchar("tokenHash", { length: 64 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  revokedAt: timestamp("revokedAt"),
+});
+
+export type McpToken = typeof mcpTokens.$inferSelect;
+export type InsertMcpToken = typeof mcpTokens.$inferInsert;
