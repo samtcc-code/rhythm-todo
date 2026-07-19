@@ -148,7 +148,11 @@ export const appRouter = router({
           ...input,
           isUrgent: input.isUrgent ?? true,
           isImportant: input.isImportant ?? true,
-          doDateToday: input.doDateToday ?? (input.doDateSomeday ? false : true),
+          // Only pin to "today" by default when the caller gave no date
+          // info at all. If they already supplied a specific doDate (e.g.
+          // tomorrow) or doDateSomeday, respect it instead of also pinning
+          // to today - a task shouldn't show up on two lists at once.
+          doDateToday: input.doDateToday ?? (input.doDateSomeday || input.doDate ? false : true),
           ownerId: input.ownerId ?? SAM_USER_ID,
         });
       }),

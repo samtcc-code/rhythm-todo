@@ -202,13 +202,11 @@ export async function listTasks(filters?: {
   const where = conditions.length > 0 ? and(...conditions) : undefined;
   const taskRows = await db.select().from(tasks).where(where).orderBy(asc(tasks.sortOrder), asc(tasks.id));
 
-  // Sync doDate to today for any doDateToday tasks that are stale or null
-  const staleToday = taskRows.filter(t => t.doDateToday && t.doDate !== todayStr);
-  if (staleToday.length > 0) {
-    await db.update(tasks)
-      .set({ doDate: todayStr as any })
-      .where(sql`id = ANY(ARRAY[${sql.join(staleToday.map(t => sql`${t.id}`), sql`, `)}])`);
-  }
+  // Rolling doDateToday tasks forward as days pass is handled explicitly by
+  // dailyCleanup() (the "Clean Up" button), not silently on every read here.
+  // This used to auto-rewrite doDate using the server's own clock (Render
+  // runs UTC), which fought with the browser's local "today" and could
+  // stamp a just-created task with the wrong day for anyone west of UTC.
 
   if (filters?.tagId !== undefined) {
     const taggedTaskIds = await db.select({ taskId: taskTags.taskId }).from(taskTags).where(eq(taskTags.tagId, filters.tagId));
@@ -245,9 +243,9 @@ export async function createTask(data: {
   const isImportant = data.isImportant ?? false;
   const quadrant = computeQuadrant(isUrgent, isImportant);
 
-  // Prefer client-provided doDate (their local YYYY-MM-DD) — server clock may
-  // be UTC, which flips to tomorrow before the user's evening ends. Only fall
-  // back to server today when the caller sent doDateToday with no explicit date.
+  // Prefer the caller's own doDate (the browser knows its real local "today";
+  // this server's clock is UTC on Render and can be a day off from it).
+  // Only fall back to the server's guess if the caller didn't supply one.
   const doDate = data.doDate ?? (data.doDateToday ? getTodayStr() : null);
 
   const result = await db.insert(tasks).values({
@@ -305,9 +303,10 @@ export async function updateTask(id: number, data: {
   if (data.projectId !== undefined) set.projectId = data.projectId;
   if (data.sortOrder !== undefined) set.sortOrder = data.sortOrder;
 
-  // If doDateToday is being set to true, sync doDate to today
+  // Prefer the caller's own doDate (the browser's real local "today") over
+  // this server's UTC clock - see the matching comment in createTask.
   if (data.doDateToday === true) {
-    set.doDate = getTodayStr();
+    set.doDate = (data.doDate ?? getTodayStr()) as any;
   } else if (data.doDate !== undefined) {
     set.doDate = data.doDate as any;
   }

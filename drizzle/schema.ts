@@ -61,6 +61,7 @@ export const tasks = pgTable("tasks", {
   quadrant: quadrantEnum("quadrant").default("doLater").notNull(),
   doDate: date("doDate"),
   doDateSomeday: boolean("doDateSomeday").default(false).notNull(),
+  doDateToday: boolean("doDateToday").default(false).notNull(),
   dueDate: date("dueDate"),
   ownerId: integer("ownerId"),
   areaId: integer("areaId"),
