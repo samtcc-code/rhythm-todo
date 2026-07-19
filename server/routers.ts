@@ -263,8 +263,9 @@ export const appRouter = router({
 
     // ─── Clean up ──────────────────────────────────────────────────
     dailyCleanup: protectedProcedure
-      .mutation(async () => {
-        return db.dailyCleanup();
+      .input(z.object({ today: z.string() }))
+      .mutation(async ({ input }) => {
+        return db.dailyCleanup(input.today);
       }),
   }),
 
