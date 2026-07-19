@@ -109,6 +109,7 @@ vi.mock("./db", () => {
         isDone: false, isUrgent, isImportant,
         quadrant: computeQuadrant(isUrgent, isImportant),
         doDate: data.doDate ?? null, doDateSomeday: data.doDateSomeday ?? false,
+        doDateToday: data.doDateToday ?? false,
         dueDate: data.dueDate ?? null, ownerId: data.ownerId ?? null,
         areaId: data.areaId ?? null, projectId: data.projectId ?? null,
         sortOrder: data.sortOrder ?? 0,
@@ -156,6 +157,12 @@ vi.mock("./db", () => {
         const t = tasksList.find(x => x.id === id);
         if (t) { t.doDate = doDate; t.doDateSomeday = doDateSomeday ?? false; }
       });
+    }),
+    dailyCleanup: vi.fn(async (today: string) => {
+      tasksList.forEach(t => { if (t.doDateToday && t.doDate > today) t.doDateToday = false; });
+      tasksList.forEach(t => { if (t.doDateToday && t.doDateSomeday) t.doDateSomeday = false; });
+      tasksList.forEach(t => { if (!t.isDone && t.doDateToday && t.doDate !== today) t.doDate = today; });
+      tasksList.forEach(t => { if (!t.isDone && !t.doDateSomeday && !t.doDateToday && t.doDate !== null && t.doDate < today) t.doDate = today; });
     }),
     // Subtasks
     createSubtask: vi.fn(async (data: any) => {
@@ -305,6 +312,35 @@ describe("tasks", () => {
 
     await caller.tasks.create({ title: "Explicitly not pinned", doDate: "2026-08-01", doDateToday: false });
     expect(db.createTask.mock.calls.at(-1)![0]).toMatchObject({ doDateToday: false });
+  });
+
+  it("dailyCleanup rolls stale doDateToday tasks to the caller's own today, not the server's clock", async () => {
+    const db = await import("./db") as any;
+    const caller = getCaller();
+
+    // Pinned to "today" but stuck on a stale date - dailyCleanup should
+    // roll it forward to whatever the caller says today is.
+    const { id: pinned } = await caller.tasks.create({ title: "Pinned", doDate: "2020-01-01", doDateToday: true });
+    // Scheduled for a specific past date, never pinned - should also roll forward.
+    const { id: pastDated } = await caller.tasks.create({ title: "Past dated", doDate: "2020-01-01" });
+    // Scheduled for the future - must be left alone.
+    const { id: future } = await caller.tasks.create({ title: "Future", doDate: "2099-01-01" });
+
+    // A deliberately absurd date, unrelated to the real system clock, to
+    // prove the result depends on this argument and not new Date() anywhere
+    // on the server.
+    const callersToday = "2077-06-15";
+    await caller.tasks.dailyCleanup({ today: callersToday });
+    expect(db.dailyCleanup).toHaveBeenCalledWith(callersToday);
+
+    const t1 = await caller.tasks.get({ id: pinned });
+    expect(t1!.doDate).toBe(callersToday);
+
+    const t2 = await caller.tasks.get({ id: pastDated });
+    expect(t2!.doDate).toBe(callersToday);
+
+    const t3 = await caller.tasks.get({ id: future });
+    expect(t3!.doDate).toBe("2099-01-01");
   });
 
   it("computes Eisenhower quadrant correctly", async () => {

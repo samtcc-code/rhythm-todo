@@ -411,7 +411,7 @@ function MobileTodayView() {
           )}
         </button>
         <button
-          onClick={() => cleanup.mutate()}
+          onClick={() => cleanup.mutate({ today })}
           disabled={cleanup.isPending}
           className="theme-btn-tinted w-full h-24 rounded-3xl border-2 flex flex-col items-center justify-center gap-1 active:scale-[0.97] transition-transform disabled:opacity-60"
           style={{ ["--btn" as string]: "var(--theme-cleanup)" }}
@@ -617,7 +617,7 @@ function DesktopTodayView() {
             <Sunset className="h-4 w-4" />
             Evening Sift
           </Button>
-          <Button variant="outline" onClick={() => cleanup.mutate()} disabled={cleanup.isPending} className="gap-1.5 h-9 px-3 text-sm">
+          <Button variant="outline" onClick={() => cleanup.mutate({ today })} disabled={cleanup.isPending} className="gap-1.5 h-9 px-3 text-sm">
             <RefreshCw className={`h-4 w-4 ${cleanup.isPending ? "animate-spin" : ""}`} />
             Clean Up
           </Button>

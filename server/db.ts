@@ -437,10 +437,13 @@ export async function revokeMcpToken(id: number) {
 
 // ─── Clean Up function ───────────────────────────────────────────────────
 
-export async function dailyCleanup() {
+// today must be the caller's own local "YYYY-MM-DD" - this server's clock
+// is UTC on Render, so CURRENT_DATE is often already tomorrow relative to
+// whoever clicked the button (anyone west of UTC, every evening).
+export async function dailyCleanup(today: string) {
   const database = await getDb();
-  await database.execute(sql`UPDATE tasks SET "doDateToday" = false WHERE "doDateToday" = true AND "doDate" > CURRENT_DATE`);
+  await database.execute(sql`UPDATE tasks SET "doDateToday" = false WHERE "doDateToday" = true AND "doDate" > ${today}::date`);
   await database.execute(sql`UPDATE tasks SET "doDateSomeday" = false WHERE "doDateToday" = true AND "doDateSomeday" = true`);
-  await database.execute(sql`UPDATE tasks SET "doDate" = CURRENT_DATE WHERE "isDone" = false AND "doDateToday" = true AND ("doDate" != CURRENT_DATE OR "doDate" IS NULL)`);
-  await database.execute(sql`UPDATE tasks SET "doDate" = CURRENT_DATE WHERE "isDone" = false AND "doDateSomeday" = false AND "doDateToday" = false AND "doDate" < CURRENT_DATE`);
+  await database.execute(sql`UPDATE tasks SET "doDate" = ${today}::date WHERE "isDone" = false AND "doDateToday" = true AND ("doDate" != ${today}::date OR "doDate" IS NULL)`);
+  await database.execute(sql`UPDATE tasks SET "doDate" = ${today}::date WHERE "isDone" = false AND "doDateSomeday" = false AND "doDateToday" = false AND "doDate" < ${today}::date`);
 }
