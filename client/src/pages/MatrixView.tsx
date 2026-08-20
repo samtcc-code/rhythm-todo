@@ -85,9 +85,12 @@ export default function MatrixView() {
   const projectsData = useMemo(() => projectsQuery.data?.map(p => ({ id: p.id, name: p.name })) ?? [], [projectsQuery.data]);
 
   const tasksByQuadrant = (key: string) => {
-    const fromQuery = allTasks.data?.filter(t => t.quadrant === key) ?? [];
+    // Exclude Someday tasks — the Matrix is a "what's live right now" board.
+    // Someday items live in the Someday view; keeping them here just clutters
+    // Do Later.
+    const fromQuery = allTasks.data?.filter(t => t.quadrant === key && !t.doDateSomeday) ?? [];
     const stillLingering = Array.from(lingering.values()).filter(
-      t => t.quadrant === key && !fromQuery.some(x => x.id === t.id)
+      t => t.quadrant === key && !t.doDateSomeday && !fromQuery.some(x => x.id === t.id)
     );
     return [...fromQuery, ...stillLingering];
   };
