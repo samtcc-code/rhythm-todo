@@ -119,6 +119,7 @@ function MobileTodayView() {
   const [dumpInput, setDumpInput] = useState("");
   const [siftSelected, setSiftSelected] = useState<Set<number>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDone, setShowDone] = useState(false);
   const { lingeringIds, holdDuringGrace } = useLingeringCompletions();
 
   const incompleteTasks = todayTasks.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
@@ -458,23 +459,31 @@ function MobileTodayView() {
 
         {completedTasks.length > 0 && (
           <div>
-            <p className="text-base uppercase tracking-wider text-foreground/75 mb-4 font-semibold">
+            <button
+              type="button"
+              onClick={() => setShowDone(v => !v)}
+              aria-expanded={showDone}
+              className="flex items-center gap-2 text-base uppercase tracking-wider text-foreground/75 mb-4 font-semibold py-2 -my-2"
+            >
+              <ChevronDown className={cn("h-5 w-5 transition-transform", !showDone && "-rotate-90")} />
               Done ({completedTasks.length})
-            </p>
-            <div className="space-y-3">
-              {completedTasks.map(task => (
-                <button
-                  key={task.id}
-                  onClick={() => toggleTask.mutate({ id: task.id, isDone: false })}
-                  className="w-full text-left rounded-2xl border border-border bg-card/70 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform opacity-70"
-                >
-                  <div className="h-10 w-10 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center shrink-0">
-                    <Check className="h-6 w-6 text-primary" />
-                  </div>
-                  <span className="text-xl line-through text-foreground/60 flex-1 leading-snug">{task.title}</span>
-                </button>
-              ))}
-            </div>
+            </button>
+            {showDone && (
+              <div className="space-y-3">
+                {completedTasks.map(task => (
+                  <button
+                    key={task.id}
+                    onClick={() => toggleTask.mutate({ id: task.id, isDone: false })}
+                    className="w-full text-left rounded-2xl border border-border bg-card/70 p-6 flex items-center gap-5 active:scale-[0.97] transition-transform opacity-70"
+                  >
+                    <div className="h-10 w-10 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center shrink-0">
+                      <Check className="h-6 w-6 text-primary" />
+                    </div>
+                    <span className="text-xl line-through text-foreground/60 flex-1 leading-snug">{task.title}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -526,6 +535,7 @@ function DesktopTodayView() {
 
   const [showEveningSift, setShowEveningSift] = useState(false);
   const [siftSelected, setSiftSelected] = useState<Set<number>>(new Set());
+  const [showDone, setShowDone] = useState(false);
   const { lingeringIds, holdDuringGrace } = useLingeringCompletions();
 
   const allIncomplete = todayTasks.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
@@ -797,17 +807,27 @@ function DesktopTodayView() {
 
       {completedTasks.length > 0 && (
         <div>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 px-1">
+          <button
+            type="button"
+            onClick={() => setShowDone(v => !v)}
+            aria-expanded={showDone}
+            className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground mb-2 px-1 py-1 -mx-1 -my-1 rounded transition-colors"
+          >
+            <ChevronDown
+              className={cn("h-3 w-3 transition-transform", !showDone && "-rotate-90")}
+            />
             Done ({completedTasks.length})
-          </p>
-          <TaskList
-            tasks={completedTasks}
-            users={usersQuery.data}
-            areas={areasData}
-            projects={projectsData}
-            showCreateInline={false}
-            hideDoDate
-          />
+          </button>
+          {showDone && (
+            <TaskList
+              tasks={completedTasks}
+              users={usersQuery.data}
+              areas={areasData}
+              projects={projectsData}
+              showCreateInline={false}
+              hideDoDate
+            />
+          )}
         </div>
       )}
 
