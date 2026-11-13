@@ -22,6 +22,7 @@ import { useLocation } from "wouter";
 import { quadrantKeyFromFlags, quadrantLabel, quadrantPillClass } from "@/lib/quadrantStyles";
 import CompletionSparkles from "@/components/CompletionSparkles";
 import { useLingeringCompletions } from "@/hooks/useLingeringCompletions";
+import { useUndoToast } from "@/hooks/useUndoToast";
 
 function getTodayStr() {
   const d = new Date();
@@ -121,6 +122,7 @@ function MobileTodayView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDone, setShowDone] = useState(false);
   const { lingeringIds, holdDuringGrace } = useLingeringCompletions();
+  const { showUndo } = useUndoToast();
 
   const incompleteTasks = todayTasks.data?.filter(t => !t.isDone || lingeringIds.has(t.id)) ?? [];
   const completedTasks = todayTasks.data?.filter(t => t.isDone && !lingeringIds.has(t.id)) ?? [];
@@ -449,7 +451,14 @@ function MobileTodayView() {
                 <MobileIncompleteRow
                   key={task.id}
                   task={task}
-                  onComplete={() => { holdDuringGrace(task.id); toggleTask.mutate({ id: task.id, isDone: true }); }}
+                  onComplete={() => {
+                    holdDuringGrace(task.id);
+                    toggleTask.mutate({ id: task.id, isDone: true });
+                    showUndo({
+                      message: `"${task.title}" completed`,
+                      onUndo: () => toggleTask.mutate({ id: task.id, isDone: false }),
+                    });
+                  }}
                   onFocus={() => setLocation(`/focus/${task.id}`)}
                 />
               ))}
